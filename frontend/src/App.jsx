@@ -1,13 +1,16 @@
 import { useTheme } from "./hooks/useTheme";
-import { Button, Switch, Typography } from "@mui/material";
-import React from "react";
+import { Provider } from "react-redux";
+import { store } from "./redux/store";
+import AppRouter from "./routes/AppRouter";
 
 const App = () => {
   const { toggleMode } = useTheme();
   return (
-    <div className="flex justify-center items-center">
-      <Switch onClick={toggleMode}>Toggle Theme</Switch>
-    </div>
+    <Provider store={store}>
+      <div className="min-h-screen  bg-background text-primary transition-colors duration-300">
+        <AppRouter />
+      </div>
+    </Provider>
   );
 };
 
