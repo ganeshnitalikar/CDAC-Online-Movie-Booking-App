@@ -23,7 +23,6 @@ import AdminDashBoard from "../pages/adminPages/AdminDashBoard";
 import AdminRoute from "./AdminRoute";
 import AdminLogs from "../pages/adminPages/AdminLogs";
 import AdminMovies from "../pages/adminPages/AdminMovies";
-import AdminOwners from "../pages/adminPages/AdminOwners";
 import AdminPayment from "../pages/adminPages/AdminPayment";
 import AdminSettings from "../pages/adminPages/AdminSettings";
 import AdminUsers from "../pages/adminPages/AdminUsers";
@@ -96,11 +95,7 @@ const UserRouter = () => {
             <AdminMovies/>
             </AdminRoute>
         } />
-        <Route path={ROUTES.ADMIN_OWNERS} element={
-          <AdminRoute>
-            <AdminOwners/>
-            </AdminRoute>
-        } />
+        
         <Route path={ROUTES.ADMIN_PAYMENTS} element={
           <AdminRoute>
             <AdminPayment/>
