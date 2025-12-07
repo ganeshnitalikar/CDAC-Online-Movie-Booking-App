@@ -15,7 +15,7 @@ import {
 	Stack
 } from '@mui/material'
 import { ArrowBackIosNew, ArrowForwardIos } from '@mui/icons-material'
-import { getFeaturedMovies, getRecommendedMovies, getTrendingSearches } from '../../services/movies'
+import { getFeaturedMovies, getRecommendedMovies, getTrendingSearches } from '../../services/movie'
 import { useNavigate } from 'react-router-dom'
 
 const Carousel = ({ items = [], onSelect }) => {

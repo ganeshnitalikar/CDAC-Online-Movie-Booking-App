@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { getMovieById } from '../../services/movies'
+import { getMovieById } from  '../../services/movie'
 import { Box, Container, Typography, Chip, Grid, Paper, Button, Stack, Skeleton } from '@mui/material'
 
 const MetaItem = ({ label, value }) => (
