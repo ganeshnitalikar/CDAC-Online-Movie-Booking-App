@@ -1,7 +1,7 @@
 import React, { Children } from "react";
 import ProtectedRoute from "./ProtectedRoute";
-const AdminRoute = ({ Children }) => {
-  return <ProtectedRoute requiredRole="admin">{Children}</ProtectedRoute>;
+const AdminRoute = ({ children }) => {
+  return <ProtectedRoute requiredRole="admin">{children}</ProtectedRoute>;
 };
 
 export default AdminRoute;
