@@ -5,7 +5,6 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -23,32 +22,26 @@ public class Movie {
     private String id;
 
     private String title;
-
     private String description;
-
-    @Field("genres")
     private List<String> genre;
 
     private String posterUrl;
-
     private String backdropUrl;
 
     private Double rating;
-
     private Integer durationMinutes;
-
     private LocalDate releaseDate;
 
     private String language;
-
     private String certificate;
 
     private List<CastMember> cast;
-
     private List<CrewMember> crew;
 
-    private boolean approved;
+    private String createdByUserId;
+    private String createdByRole;
 
+    private boolean approved;
     private boolean active;
 
     @CreatedDate

@@ -1,16 +1,18 @@
 package com.cdac.service;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 import com.cdac.dtos.request.AdminApprovalRequest;
 import com.cdac.dtos.request.CreateMovieRequest;
 import com.cdac.dtos.request.UpdateMovieRequest;
+import com.cdac.dtos.response.CastResponse;
+import com.cdac.dtos.response.CrewResponse;
 import com.cdac.dtos.response.MovieResponse;
 import com.cdac.entities.Movie;
 import com.cdac.exception.AccessDeniedException;
 import com.cdac.exception.InvalidOperationException;
 import com.cdac.exception.MovieNotFoundException;
 import com.cdac.repository.MovieRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,9 +21,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MovieServiceImpl implements MovieService {
 
-
     private final MovieRepository movieRepository;
-
 
     // =========================
     // Public / USER
@@ -33,6 +33,20 @@ public class MovieServiceImpl implements MovieService {
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public MovieResponse getMovieById(String movieId) {
+
+        Movie movie = movieRepository.findById(movieId)
+                .orElseThrow(() ->
+                        new MovieNotFoundException("Movie not found with id: " + movieId));
+
+        if (!movie.isApproved() || !movie.isActive()) {
+            throw new MovieNotFoundException("Movie not available");
+        }
+
+        return toResponse(movie);
     }
 
     // =========================
@@ -52,6 +66,13 @@ public class MovieServiceImpl implements MovieService {
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .genre(request.getGenre())
+                .posterUrl(request.getPosterUrl())
+                .backdropUrl(request.getBackdropUrl())
+                .rating(request.getRating())
+                .language(request.getLanguage())
+                .certificate(request.getCertificate())
+                .cast(request.getCast())
+                .crew(request.getCrew())
                 .durationMinutes(request.getDurationMinutes())
                 .releaseDate(request.getReleaseDate())
                 .createdByUserId(userId)
@@ -61,7 +82,6 @@ public class MovieServiceImpl implements MovieService {
                 .build();
 
         Movie savedMovie = movieRepository.save(movie);
-        System.out.println("Saved movie ID = " + savedMovie.getId());
         return toResponse(savedMovie);
     }
 
@@ -80,7 +100,6 @@ public class MovieServiceImpl implements MovieService {
         Movie movie = movieRepository.findById(movieId)
                 .orElseThrow(() -> new MovieNotFoundException("Movie not found"));
 
-        // Ownership / Role check
         if (role.equals("THEATER_OWNER")) {
             if (!movie.getCreatedByUserId().equals(userId)) {
                 throw new AccessDeniedException("You can update only your own movies");
@@ -89,24 +108,19 @@ public class MovieServiceImpl implements MovieService {
             throw new AccessDeniedException("You are not allowed to update movies");
         }
 
-        // Apply updates only if provided
-        if (request.getTitle() != null) {
-            movie.setTitle(request.getTitle());
-        }
-        if (request.getDescription() != null) {
-            movie.setDescription(request.getDescription());
-        }
-        if (request.getGenre() != null) {
-            movie.setGenre(request.getGenre());
-        }
-        if (request.getDurationMinutes() != null) {
-            movie.setDurationMinutes(request.getDurationMinutes());
-        }
-        if (request.getReleaseDate() != null) {
-            movie.setReleaseDate(request.getReleaseDate());
-        }
+        if (request.getTitle() != null) movie.setTitle(request.getTitle());
+        if (request.getDescription() != null) movie.setDescription(request.getDescription());
+        if (request.getGenre() != null) movie.setGenre(request.getGenre());
+        if (request.getPosterUrl() != null) movie.setPosterUrl(request.getPosterUrl());
+        if (request.getBackdropUrl() != null) movie.setBackdropUrl(request.getBackdropUrl());
+        if (request.getRating() != null) movie.setRating(request.getRating());
+        if (request.getLanguage() != null) movie.setLanguage(request.getLanguage());
+        if (request.getCertificate() != null) movie.setCertificate(request.getCertificate());
+        if (request.getCast() != null) movie.setCast(request.getCast());
+        if (request.getCrew() != null) movie.setCrew(request.getCrew());
+        if (request.getDurationMinutes() != null) movie.setDurationMinutes(request.getDurationMinutes());
+        if (request.getReleaseDate() != null) movie.setReleaseDate(request.getReleaseDate());
 
-        // Only ADMIN can change active flag
         if (request.getActive() != null) {
             if (!role.equals("ADMIN")) {
                 throw new AccessDeniedException("Only admin can change active status");
@@ -176,13 +190,39 @@ public class MovieServiceImpl implements MovieService {
     // =========================
 
     private MovieResponse toResponse(Movie movie) {
+
         return MovieResponse.builder()
                 .id(movie.getId())
                 .title(movie.getTitle())
                 .description(movie.getDescription())
                 .genre(movie.getGenre())
+                .posterUrl(movie.getPosterUrl())
+                .backdropUrl(movie.getBackdropUrl())
+                .rating(movie.getRating())
                 .durationMinutes(movie.getDurationMinutes())
                 .releaseDate(movie.getReleaseDate())
+                .language(movie.getLanguage())
+                .certificate(movie.getCertificate())
+                .cast(
+                        movie.getCast() == null ? List.of() :
+                                movie.getCast().stream()
+                                        .map(c -> CastResponse.builder()
+                                                .id(c.getId())
+                                                .name(c.getName())
+                                                .role(c.getRole())
+                                                .build())
+                                        .collect(Collectors.toList())
+                )
+                .crew(
+                        movie.getCrew() == null ? List.of() :
+                                movie.getCrew().stream()
+                                        .map(c -> CrewResponse.builder()
+                                                .id(c.getId())
+                                                .name(c.getName())
+                                                .role(c.getRole())
+                                                .build())
+                                        .collect(Collectors.toList())
+                )
                 .approved(movie.isApproved())
                 .active(movie.isActive())
                 .createdAt(movie.getCreatedAt())

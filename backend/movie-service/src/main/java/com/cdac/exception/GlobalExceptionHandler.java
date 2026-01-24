@@ -18,17 +18,17 @@ public class GlobalExceptionHandler {
     // =========================
     // Movie Not Found
     // =========================
-    @ExceptionHandler(MovieNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleMovieNotFound(
-            MovieNotFoundException ex,
-            HttpServletRequest request
-    ) {
-        return buildErrorResponse(
-                HttpStatus.NOT_FOUND,
-                ex.getMessage(),
-                request.getRequestURI()
-        );
-    }
+	 @ExceptionHandler(MovieNotFoundException.class)
+	    public ResponseEntity<Map<String, Object>> handleMovieNotFound(MovieNotFoundException ex) {
+	        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+	                Map.of(
+	                        "timestamp", LocalDateTime.now(),
+	                        "status", 404,
+	                        "error", "NOT_FOUND",
+	                        "message", ex.getMessage()
+	                )
+	        );
+	    }
 
     // =========================
     // Access Denied (Business)

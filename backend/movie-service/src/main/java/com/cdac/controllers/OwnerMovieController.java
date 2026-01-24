@@ -20,15 +20,13 @@ public class OwnerMovieController {
 
     @PostMapping
     public MovieResponse createMovie(
-            @Valid @RequestBody CreateMovieRequest request
-//            @AuthenticationPrincipal Jwt jwt
+            @Valid @RequestBody CreateMovieRequest request,
+            @AuthenticationPrincipal Jwt jwt
     ) {
         return movieService.createMovie(
                 request,
-                "OWNER_1",
-                "THEATER_OWNER"
-//                jwt.getSubject(),
-//                jwt.getClaim("role")
+                jwt.getSubject(),
+                jwt.getClaim("role")
         );
     }
 

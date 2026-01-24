@@ -1,11 +1,12 @@
 package com.cdac.dtos.request;
 
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.PastOrPresent;
-import jakarta.validation.constraints.Size;
+import com.cdac.entities.CastMember;
+import com.cdac.entities.CrewMember;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 public class UpdateMovieRequest {
@@ -13,11 +14,17 @@ public class UpdateMovieRequest {
     @Size(min = 2, max = 100, message = "Title must be between 2 and 100 characters")
     private String title;
 
-    @Size(min = 10, max = 500, message = "Description must be between 10 and 500 characters")
+    @Size(min = 10, max = 1000, message = "Description must be between 10 and 1000 characters")
     private String description;
 
-    @Size(min = 3, max = 50, message = "Genre must be between 3 and 50 characters")
-    private String genre;
+    private List<@NotBlank String> genre;
+
+    private String posterUrl;
+    private String backdropUrl;
+
+    @DecimalMin(value = "0.0", message = "Rating cannot be negative")
+    @DecimalMax(value = "10.0", message = "Rating cannot exceed 10")
+    private Double rating;
 
     @Min(value = 1, message = "Duration must be at least 1 minute")
     private Integer durationMinutes;
@@ -25,8 +32,12 @@ public class UpdateMovieRequest {
     @PastOrPresent(message = "Release date cannot be in the future")
     private LocalDate releaseDate;
 
-    /**
-     * Only ADMIN can change active status
-     */
+    private String language;
+    private String certificate;
+
+    private List<CastMember> cast;
+    private List<CrewMember> crew;
+
+    // ADMIN only (already enforced in service)
     private Boolean active;
 }

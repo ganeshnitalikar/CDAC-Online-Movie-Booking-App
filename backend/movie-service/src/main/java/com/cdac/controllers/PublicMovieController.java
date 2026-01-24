@@ -1,11 +1,8 @@
 package com.cdac.controllers;
 
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.cdac.dtos.response.MovieResponse;
 import com.cdac.service.MovieService;
@@ -18,14 +15,16 @@ import java.util.List;
 public class PublicMovieController {
 
     private final MovieService movieService;
-    
-    @GetMapping("/test")
-    public ResponseEntity<String> test(){
-    	return ResponseEntity.ok("Success");
+
+    // List page
+    @GetMapping
+    public ResponseEntity<List<MovieResponse>> getPublicMovies() {
+        return ResponseEntity.ok(movieService.getPublicMovies());
     }
 
-    @GetMapping
-    public List<MovieResponse> getPublicMovies() {
-        return movieService.getPublicMovies();
+    // Movie details page
+    @GetMapping("/{movieId}")
+    public ResponseEntity<MovieResponse> getMovieById(@PathVariable String movieId) {
+        return ResponseEntity.ok(movieService.getMovieById(movieId));
     }
 }
