@@ -25,7 +25,7 @@ const Carousel = ({ items = [], onSelect }) => {
 		if (!items.length) return
 		const id = setInterval(() => setIndex((prev) => (prev + 1) % items.length), 5000)
 		return () => clearInterval(id)
-	}, [items])
+	}, [items]);
 
 	if (!items.length) {
 		return (

@@ -26,7 +26,8 @@ import AdminMovies from "../pages/adminPages/AdminMovies";
 import AdminPayment from "../pages/adminPages/AdminPayment";
 import AdminSettings from "../pages/adminPages/AdminSettings";
 import AdminUsers from "../pages/adminPages/AdminUsers";
-
+import ResetPassword from "../pages/public/ResetPassword";
+import ForgotPassword from "../pages/public/ForgotPassword";
 const UserRouter = () => {
   return (
     <Router>
@@ -38,7 +39,8 @@ const UserRouter = () => {
         <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
         <Route path={ROUTES.ABOUT} element={<AboutPage />} />
         <Route path={ROUTES.CONTACT} element={<ContactPage />} />
-
+         <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
+         <Route path={ROUTES.RESET_PASSWORD} element={<ResetPassword />} />
         <Route
           path={ROUTES.USER_DASHBOARD}
           element={
@@ -46,6 +48,7 @@ const UserRouter = () => {
               <UserDashboard />
             </UserRoute>
           }
+          
         />
         <Route
           path={ROUTES.USER_PAYMENT}

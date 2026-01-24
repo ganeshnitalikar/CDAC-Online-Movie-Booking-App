@@ -1,16 +1,22 @@
 
 
 export const API_CONFIG = {
-  BASE_URL: import.meta.env.REACT_APP_API_URL || 'http://localhost:3001/api',
-  
+  BASE_URL: import.meta.env.REACT_APP_API_URL || 'http://localhost:4000',
+   ///BASE_URL: import.meta.env.REACT_APP_API_URL,
   // API Endpoints
   ENDPOINTS: {
     AUTH: {
-      LOGIN: '/auth/login',
-      REGISTER: '/auth/register',
+      LOGIN: '/user/login',
+      REGISTER: '/user/register',
       REFRESH: '/auth/refresh',
       LOGOUT: '/auth/logout',
       PROFILE: '/auth/profile',
+      VERIFY_ADMIN_OTP:'/user/verify-admin-otp',
+      FORGOT_PASSWORD:'/auth/forgot-password',
+      RESET_PASSWORD:'/auth/reset-password',
+      LOGOUT:'user/logout',
+      GET_PROFILE:"/user/profile",
+
     },
     MOVIES: {
       LIST: '/movies',
