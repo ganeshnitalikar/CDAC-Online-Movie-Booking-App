@@ -25,7 +25,7 @@ export const useAuth = () => {
       const response = await loginApi(credentials);
       // response = { status, data }
     
-      // 🔐 ADMIN OTP CASE
+      //  ADMIN OTP CASE
       if (response?.data?.requiresOtp) {
         dispatch(loginFailure(null)); // stop loader
         return {
@@ -34,7 +34,7 @@ export const useAuth = () => {
         };
       }
 
-      // ✅ NORMAL LOGIN
+      //  NORMAL LOGIN
       if (!response?.data?.token) {
         throw new Error("Invalid login response");
       }
