@@ -1,0 +1,10 @@
+package com.cdac.dtos.request;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+
+@Data
+public class AdminApprovalRequest {
+
+    @NotNull(message = "Approval decision is required")
+    private Boolean approved;
+}
