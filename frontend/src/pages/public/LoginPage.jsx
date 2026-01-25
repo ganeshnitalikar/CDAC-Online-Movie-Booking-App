@@ -64,7 +64,8 @@ const LoginPage = () => {
     if (!validateForm()) return;
 
     const result = await login(formData);
-
+     console.log(result)
+     console.log(result.role)
     // ADMIN → OTP REQUIRED
     if (result?.success && result?.requiresOtp) {
       setOtpOpen(true);
@@ -73,15 +74,16 @@ const LoginPage = () => {
       return;
     }
 
-    // 👤 USER
-    if (result?.success && result?.role === "USER") {
+    //  USER
+    if (result?.success && result?.role?.trim().toUpperCase() === "USER") {
+      console.log("hello")
       navigate(ROUTES.USER_DASHBOARD, { replace: true });
       return;
     }
  
 
     // OWNER
-  if (result.role === "OWNER") {
+  if (result?.role?.trim().toUpperCase() === "THEATER_OWNER") {
     console.log("hello");
   navigate(ROUTES.OWNER_DASHBOARD, { replace: true }); 
   return;

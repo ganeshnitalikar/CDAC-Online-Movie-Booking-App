@@ -122,7 +122,7 @@ export const useAuth = () => {
     try {
       dispatch(registerStart());
       const response = await registerApi(userData);
-
+     
       const user = {
         email: userData.email,
         role: response.data.role,
