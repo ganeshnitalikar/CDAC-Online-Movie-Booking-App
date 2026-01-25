@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect } from "react";
 import {
   Box,
@@ -32,6 +34,9 @@ import { useNavigate, useLocation, Link as RouterLink } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { ROUTES } from "../../constants/routes";
 
+// Import static cities JSON
+import citiesData from "../../Data/india_cities.json";
+
 const RegisterPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -46,12 +51,26 @@ const RegisterPage = () => {
     password: "",
     confirmPassword: "",
     phone: "",
-    role: "user",
+    role: "USER",
+    city: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formErrors, setFormErrors] = useState({});
+  const [successMsg, setSuccessMsg] = useState(""); // optional success message
+
+  // Load static city list
+  const [cities, setCities] = useState([]);
+  const [cityLoading, setCityLoading] = useState(true);
+
+  useEffect(() => {
+    setCityLoading(true);
+    setTimeout(() => {
+      setCities(citiesData);
+      setCityLoading(false);
+    }, 300);
+  }, []);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -66,54 +85,40 @@ const RegisterPage = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
 
     if (formErrors[name]) {
-      setFormErrors((prev) => ({
-        ...prev,
-        [name]: "",
-      }));
+      setFormErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
   const validateForm = () => {
     const errors = {};
-
-    if (!formData.name.trim()) {
-      errors.name = "Full name is required";
-    } else if (formData.name.trim().length < 2) {
+    if (!formData.name.trim()) errors.name = "Full name is required";
+    else if (formData.name.trim().length < 2)
       errors.name = "Name must be at least 2 characters";
-    }
 
-    if (!formData.email) {
-      errors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    if (!formData.email) errors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(formData.email))
       errors.email = "Please enter a valid email address";
-    }
 
-    if (!formData.phone) {
-      errors.phone = "Phone number is required";
-    } else if (!/^\+?[\d\s\-\(\)]{10,}$/.test(formData.phone)) {
+    if (!formData.phone) errors.phone = "Phone number is required";
+    else if (!/^\+?[\d\s\-\(\)]{10,}$/.test(formData.phone))
       errors.phone = "Please enter a valid phone number";
-    }
 
-    if (!formData.password) {
-      errors.password = "Password is required";
-    } else if (formData.password.length < 6) {
+    if (!formData.password) errors.password = "Password is required";
+    else if (formData.password.length < 6)
       errors.password = "Password must be at least 6 characters";
-    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
+    else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password))
       errors.password =
         "Password must contain at least one uppercase letter, one lowercase letter, and one number";
-    }
 
-    if (!formData.confirmPassword) {
+    if (!formData.confirmPassword)
       errors.confirmPassword = "Please confirm your password";
-    } else if (formData.password !== formData.confirmPassword) {
+    else if (formData.password !== formData.confirmPassword)
       errors.confirmPassword = "Passwords do not match";
-    }
+
+    if (!formData.city) errors.city = "Please select your city";
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -121,28 +126,23 @@ const RegisterPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     const { confirmPassword, ...userData } = formData;
-
     const result = await register(userData);
 
     if (result.success) {
-      const from = location.state?.from?.pathname || ROUTES.USER_DASHBOARD;
-      navigate(from, { replace: true });
+      // Optional success message
+      setSuccessMsg("Registration successful! Redirecting to login...");
+      setTimeout(() => {
+        navigate(ROUTES.LOGIN, { replace: true });
+      }, 1500); // redirect after 1.5 sec
     }
   };
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
-
-  const toggleConfirmPasswordVisibility = () => {
+  const togglePasswordVisibility = () => setShowPassword(!showPassword);
+  const toggleConfirmPasswordVisibility = () =>
     setShowConfirmPassword(!showConfirmPassword);
-  };
 
   return (
     <Box
@@ -203,16 +203,21 @@ const RegisterPage = () => {
             </Typography>
           </Box>
 
-          {/* Error Alert */}
+          {/* Error / Success Alert */}
           {error && (
             <Alert severity="error" sx={{ mb: 3 }} onClose={clearError}>
               {error}
             </Alert>
           )}
+          {successMsg && (
+            <Alert severity="success" sx={{ mb: 3 }}>
+              {successMsg}
+            </Alert>
+          )}
 
           {/* Registration Form */}
           <Box component="form" onSubmit={handleSubmit} sx={{ mb: 3 }}>
-            {/* Name and Email Row */}
+            {/* Name & Email */}
             <Box
               sx={{
                 display: "flex",
@@ -258,7 +263,7 @@ const RegisterPage = () => {
               />
             </Box>
 
-            {/* Phone and Role Row */}
+            {/* Phone & City */}
             <Box
               sx={{
                 display: "flex",
@@ -276,7 +281,7 @@ const RegisterPage = () => {
                 error={!!formErrors.phone}
                 helperText={formErrors.phone}
                 disabled={loading}
-                placeholder="+1 (555) 123-4567"
+                placeholder="+91 99999 99999"
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -285,9 +290,38 @@ const RegisterPage = () => {
                   ),
                 }}
               />
+
+              <FormControl fullWidth>
+                <InputLabel id="city-label">City</InputLabel>
+                <Select
+                  labelId="city-label"
+                  name="city"
+                  value={formData.city}
+                  onChange={handleInputChange}
+                  disabled={loading || cityLoading}
+                  error={!!formErrors.city}
+                >
+                  {cityLoading ? (
+                    <MenuItem disabled>
+                      <CircularProgress size={20} /> Loading...
+                    </MenuItem>
+                  ) : (
+                    cities.map((city, idx) => (
+                      <MenuItem key={idx} value={city}>
+                        {city}
+                      </MenuItem>
+                    ))
+                  )}
+                </Select>
+                {formErrors.city && (
+                  <Typography color="error" variant="caption">
+                    {formErrors.city}
+                  </Typography>
+                )}
+              </FormControl>
             </Box>
 
-            {/* Password Fields Row */}
+            {/* Password */}
             <Box
               sx={{
                 display: "flex",
@@ -348,11 +382,7 @@ const RegisterPage = () => {
                         edge="end"
                         disabled={loading}
                       >
-                        {showConfirmPassword ? (
-                          <VisibilityOff />
-                        ) : (
-                          <Visibility />
-                        )}
+                        {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
                       </IconButton>
                     </InputAdornment>
                   ),
@@ -360,69 +390,32 @@ const RegisterPage = () => {
               />
             </Box>
 
-            {/* Submit Button */}
+            {/* Submit */}
             <Button
               type="submit"
               fullWidth
               variant="contained"
               size="large"
               disabled={loading}
-              startIcon={
-                loading ? <CircularProgress size={20} /> : <PersonAddIcon />
-              }
+              startIcon={loading ? <CircularProgress size={20} /> : <PersonAddIcon />}
               sx={{
                 py: 1.5,
                 mb: 3,
                 background: "linear-gradient(45deg, #6366F1, #EC4899)",
-                "&:hover": {
-                  background: "linear-gradient(45deg, #5B5BD6, #D946EF)",
-                },
-                "&:disabled": {
-                  background: "action.disabledBackground",
-                },
+                "&:hover": { background: "linear-gradient(45deg, #5B5BD6, #D946EF)" },
+                "&:disabled": { background: "action.disabledBackground" },
               }}
             >
               {loading ? "Creating Account..." : "Create Account"}
             </Button>
           </Box>
 
-          {/* Divider */}
           <Divider sx={{ my: 3 }}>
             <Typography variant="body2" color="text.secondary">
               OR
             </Typography>
           </Divider>
 
-          {/* Quick Fill Demo */}
-          <Box sx={{ mb: 3 }}>
-            <Typography
-              variant="subtitle2"
-              sx={{ mb: 2, textAlign: "center", fontWeight: "bold" }}
-            >
-              Quick Demo Fill
-            </Typography>
-            <Button
-              variant="outlined"
-              fullWidth
-              size="small"
-              onClick={() =>
-                setFormData({
-                  name: "John Doe",
-                  email: "john@moviehub.com",
-                  password: "Password123",
-                  confirmPassword: "Password123",
-                  phone: "+1 (555) 123-4567",
-                  role: "user",
-                })
-              }
-              disabled={loading}
-              sx={{ textTransform: "none" }}
-            >
-              Fill Demo Data
-            </Button>
-          </Box>
-
-          {/* Footer Links */}
           <Box sx={{ textAlign: "center" }}>
             <Typography variant="body2" color="text.secondary">
               Already have an account?{" "}
@@ -433,9 +426,7 @@ const RegisterPage = () => {
                   color: "primary.main",
                   textDecoration: "none",
                   fontWeight: "bold",
-                  "&:hover": {
-                    textDecoration: "underline",
-                  },
+                  "&:hover": { textDecoration: "underline" },
                 }}
               >
                 Sign in here

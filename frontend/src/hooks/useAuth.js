@@ -1,148 +1,169 @@
-import { useDispatch, useSelector } from "react-redux"
+
+import { useDispatch, useSelector } from "react-redux";
 import {
-    clearError,
-    loginFailure,
-    loginStart,
-    loginSuccess,
-    registerStart,
-    registerSuccess,
-    registerFailure,
-    logout,
-    refreshToken
+  loginStart,
+  loginSuccess,
+  loginFailure,
+  registerStart,
+  registerSuccess,
+  registerFailure,
+  logout,
+  clearError,
 } from "../redux/slices/authSlice";
-
-import { buildApiUrl, getAuthHeaders, API_CONFIG } from '../config/api';
-
-const apiCall = async (endpoint, options = {}) => {
-    const url = buildApiUrl(endpoint);
-    const config = {
-        headers: {
-            ...API_CONFIG.DEFAULT_HEADERS,
-            ...options.headers,
-        },
-        ...options,
-    };
-
-    const response = await fetch(url, config);
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(data.message || 'An error occurred');
-    }
-
-    return data;
-};
+//import toast from "react-toastify"
+import { loginApi, registerApi, verifyAdminOtpApi } from "../config/authApi";
 
 export const useAuth = () => {
-    const dispatch = useDispatch();
-    const user = useSelector((state) => state.auth.user);
-    const token = useSelector((state) => state.auth.token);
-    const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
-    const loading = useSelector((state) => state.auth.loading);
-    const error = useSelector((state) => state.auth.error);
+  const dispatch = useDispatch();
+  const auth = useSelector((state) => state.auth);
 
+  // ================= LOGIN =================
+  const login = async (credentials) => {
+    try {
+      dispatch(loginStart());
 
-    const login = async (credentials) => {
-        try {
-            dispatch(loginStart());
-            const mockResponse = {
-                success: true,
-                user: {
-                    id: 1,
-                    email: credentials.email,
-                    name: credentials.email.split('@')[0],
-                    role: credentials.email.includes('admin') ? 'admin' :
-                        credentials.email.includes('owner') ? 'owner' : 'user'
-                },
-                token: 'mock-jwt-token-' + Date.now()
-            };
+      const response = await loginApi(credentials);
+      // response = { status, data }
+    
+      //  ADMIN OTP CASE
+      if (response?.data?.requiresOtp) {
+        dispatch(loginFailure(null)); // stop loader
+        return {
+          success: true,
+          requiresOtp: true,
+        };
+      }
 
-            await new Promise(resolve => setTimeout(resolve, 1000));
+      //  NORMAL LOGIN
+      if (!response?.data?.token) {
+        throw new Error("Invalid login response");
+      }
 
-            if (mockResponse.success) {
-                dispatch(loginSuccess({
-                    user: mockResponse.user,
-                    token: mockResponse.token
-                }));
-                return { success: true, user: mockResponse.user };
-            } else {
-                throw new Error('Login failed');
-            }
-        } catch (error) {
-            dispatch(loginFailure(error.message));
-            return { success: false, error: error.message };
-        }
-    };
+      const user = {
+        email: credentials.email,
+        role: response.data.role,
+      };
 
-    const register = async (userData) => {
-        try {
-            dispatch(registerStart());
-            const mockResponse = {
-                success: true,
-                user: {
-                    id: Date.now(),
-                    email: userData.email,
-                    name: userData.name,
-                    role: 'user'
-                },
-                token: 'mock-jwt-token-' + Date.now()
-            };
+      localStorage.setItem("authToken", response.data.token);
+      localStorage.setItem("refresh_token", response.data.refresh_token);
+      localStorage.setItem("authUser", JSON.stringify(user));
 
-            await new Promise(resolve => setTimeout(resolve, 1000));
+      dispatch(
+        loginSuccess({
+          user,
+          token: response.data.token,
+        })
+      );
 
-            if (mockResponse.success) {
-                dispatch(registerSuccess({
-                    user: mockResponse.user,
-                    token: mockResponse.token
-                }));
-                return { success: true, user: mockResponse.user };
-            } else {
-                throw new Error('Registration failed');
-            }
-        } catch (error) {
-            dispatch(registerFailure(error.message));
-            return { success: false, error: error.message };
-        }
-    };
+      return {
+        success: true,
+        role: response.data.role,
+      };
+    } catch (err) {
+      localStorage.clear();
 
-    // Logout function
-    const logoutUser = () => {
-        dispatch(logout());
-    };
+      dispatch(
+        loginFailure(
+          err.response?.data?.message ||
+            err.message ||
+       "Invalid email or password"
+        )
+      );
 
-    // Clear error function
-    const clearAuthError = () => {
-        dispatch(clearError());
-    };
+      return { success: false };
+    }
+  };
 
-    // Refresh token function
-    const refreshAuthToken = async () => {
-        try {
-            if (!token) return false;
-            const newToken = 'refreshed-jwt-token-' + Date.now();
-            dispatch(refreshToken(newToken));
-            return true;
-        } catch (error) {
-            dispatch(logout());
-            return false;
-        }
-    };
+  // ================= VERIFY OTP =================
+  const verifyOtp = async ({ email, otp_code }) => {
+    try {
+      dispatch(loginStart());
 
-    const getAuthHeadersForApi = () => {
-        return getAuthHeaders(token);
-    };
+      const response = await verifyAdminOtpApi({
+        email,
+        otp_code,
+      });
 
-    return {
-        user,
-        token,
-        isAuthenticated,
-        loading,
-        error,
-        login,
-        register,
-        logout: logoutUser,
-        clearError: clearAuthError,
-        refreshToken: refreshAuthToken,
-        getAuthHeaders: getAuthHeadersForApi
-    };
+      if (!response?.data?.token) {
+        throw new Error("OTP verification failed");
+      }
+
+      const user = {
+        email,
+        role: response.data.role,
+      };
+
+      localStorage.setItem("authToken", response.data.token);
+      localStorage.setItem("refresh_token", response.data.refresh_token);
+      localStorage.setItem("authUser", JSON.stringify(user));
+
+      dispatch(
+        loginSuccess({
+          user,
+          token: response.data.token,
+        })
+      );
+
+      return { status: "success" };
+    } catch (err) {
+      dispatch(
+        loginFailure(
+          err.response?.data?.message ||
+            err.message ||
+            "Invalid or expired OTP"
+        )
+      );
+      return { status: "error" };
+    }
+  };
+
+  // ================= REGISTER =================
+  const register = async (userData) => {
+    try {
+      dispatch(registerStart());
+      const response = await registerApi(userData);
+
+      const user = {
+        email: userData.email,
+        role: response.data.role,
+      };
+
+      localStorage.setItem("authToken", response.data.token);
+      localStorage.setItem("refresh_token", response.data.refresh_token);
+      localStorage.setItem("authUser", JSON.stringify(user));
+
+      dispatch(
+        registerSuccess({
+          user,
+          token: response.data.token,
+        })
+      );
+
+      return { success: true };
+    } catch (err) {
+      dispatch(
+        registerFailure(
+          err.response?.data?.message || "Registration failed"
+        )
+      );
+      return { success: false };
+    }
+  };
+
+  const logoutUser = () => {
+    localStorage.clear();
+    dispatch(logout());
+  };
+
+  return {
+    login,
+    verifyOtp,
+    register,
+    logout: logoutUser,
+    clearError: () => dispatch(clearError()),
+    loading: auth.loading,
+    error: auth.error,
+    isAuthenticated: auth.isAuthenticated,
+    user: auth.user,
+  };
 };

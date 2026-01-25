@@ -1,5 +1,8 @@
 // Route constants for the movie booking app
 export const ROUTES = {
+
+    
+
     // Public routes
     HOME: '/',
     ABOUT: '/about',
@@ -7,6 +10,9 @@ export const ROUTES = {
     LOGIN: '/login',
     REGISTER: '/register',
     MOVIE_DETAILS: '/movie/:id',
+    ADMIN_OTP_PAGE:  "/otp",
+    FORGOT_PASSWORD: "/forgot-password",
+    RESET_PASSWORD: "/reset-password",
 
     // User routes
     USER_DASHBOARD: '/user/dashboard',
@@ -42,6 +48,9 @@ export const ROUTE_GROUPS = {
         ROUTES.LOGIN,
         ROUTES.REGISTER,
         ROUTES.MOVIE_DETAILS,
+        ROUTES.ADMIN_OTP_PAGE,
+        ROUTES.FORGOT_PASSWORD,
+        ROUTES.RESET_PASSWORD,
     ],
     USER: [
         ROUTES.USER_DASHBOARD,
@@ -108,8 +117,9 @@ export const ROUTE_PERMISSIONS = {
     [ROUTES.CONTACT]: ['public', 'user', 'owner', 'admin'],
     [ROUTES.LOGIN]: ['public'],
     [ROUTES.REGISTER]: ['public'],
-    [ROUTES.MOVIE_DETAILS]: ['public', 'user', 'owner', 'admin'],
-
+    [ROUTES.MOVIE_DETAILS]: ['public'],
+    [ROUTES.FORGOT_PASSWORD]:['public'],
+     [ROUTES.RESET_PASSWORD]:['public'],
     // User routes
     [ROUTES.USER_DASHBOARD]: ['user'],
     [ROUTES.USER_PROFILE]: ['user'],

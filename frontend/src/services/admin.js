@@ -309,3 +309,13 @@ export const getRecentActivity = async (limit = 10) => {
 	}));
 }
 
+import AxiosInstance from "../config/axiosInstance"
+import { API_CONFIG } from "../config/api";
+export const getUserProfile = async () => {
+  const response = await  AxiosInstance.get(API_CONFIG.ENDPOINTS.AUTH.GET_PROFILE, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('token')}`,
+    },
+  });
+  return response.data;
+};
