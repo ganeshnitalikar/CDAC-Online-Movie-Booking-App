@@ -102,11 +102,11 @@ const Navbar = () => {
     if (!isAuthenticated || !user) return [];
     
     switch (user.role) {
-      case 'user':
+      case 'USER':
         return userMenuItems;
-      case 'owner':
+      case 'THEATER_OWNER':
         return ownerMenuItems;
-      case 'admin':
+      case 'ADMIN':
         return adminMenuItems;
       default:
         return [];
