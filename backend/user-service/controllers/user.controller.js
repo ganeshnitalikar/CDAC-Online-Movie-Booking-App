@@ -172,6 +172,46 @@ const login = async (req, res) => {
   );
 };
 
+// UPDATE USER PROFILE
+
+const updateProfile = (req, res) => {
+  const { name, phone , city } = req.body;
+  const userId = req.user.user_id; // from auth middleware
+
+  if (!name && !phone && !city) {
+    return res.status(400).send(
+      result.createResult("At least one field is required to update")
+    );
+  }
+
+  pool.query(
+    `UPDATE users
+     SET 
+       full_name = COALESCE(?, full_name),
+       phone_number = COALESCE(?, phone_number),
+       city = COALESCE(?, city),
+       updated_at = NOW()
+     WHERE user_id = ? AND is_active = 1`,
+    [name, phone, city, userId],
+    (err, response) => {
+      if (err) {
+        return res.status(500).send(result.createResult(err));
+      }
+
+      if (response.affectedRows === 0) {
+        return res.status(404).send(
+          result.createResult("User not found or inactive")
+        );
+      }
+
+      return res.status(200).send(
+        result.createResult(null, "Profile updated successfully")
+      );
+    }
+  );
+};
+
+
 //   VERIFY ADMIN OTP
 
 const verifyAdminOtp = async (req, res) => {
@@ -449,6 +489,7 @@ const deleteAccount = (req, res) => {
 module.exports = {
   register,
   login,
+  updateProfile,
   verifyAdminOtp,
   logout,
   refreshToken,
