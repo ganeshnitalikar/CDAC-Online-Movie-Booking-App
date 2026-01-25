@@ -33,7 +33,7 @@ import {
 import { useNavigate, useLocation, Link as RouterLink } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { ROUTES } from "../../constants/routes";
-
+import { toast } from "react-toastify";
 // Import static cities JSON
 import citiesData from "../../Data/india_cities.json";
 
@@ -82,6 +82,13 @@ const RegisterPage = () => {
   useEffect(() => {
     clearError();
   }, [clearError]);
+
+
+   useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
