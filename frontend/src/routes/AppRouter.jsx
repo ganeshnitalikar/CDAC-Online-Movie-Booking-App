@@ -22,12 +22,19 @@ import UserProfile from "../pages/userPages/UserProfilel";
 import AdminDashBoard from "../pages/adminPages/AdminDashBoard";
 import AdminRoute from "./AdminRoute";
 import AdminLogs from "../pages/adminPages/AdminLogs";
-import AdminMovies from "../pages/adminPages/AdminMovies";
+import AdminPendingMoviesPage from "../pages/adminPages/AdminPendingMoviesPage";
 import AdminPayment from "../pages/adminPages/AdminPayment";
 import AdminSettings from "../pages/adminPages/AdminSettings";
 import AdminUsers from "../pages/adminPages/AdminUsers";
 import ResetPassword from "../pages/public/ResetPassword";
 import ForgotPassword from "../pages/public/ForgotPassword";
+
+import OwnerRoute from "./OwnerRoute";
+import OwnerDashboard from "../pages/ownerPages/OwnerDashboard";
+import OwnerScreens from "../pages/ownerPages/OwnerScreens";
+import OwnerProfile from "../pages/ownerPages/OwnerProfile";
+import OwnerMovieFormPage from "../pages/ownerPages/OwnerMovieFormPage";
+import OwnerMoviesPage from "../pages/ownerPages/OwnerMoviesPage";
 const UserRouter = () => {
   return (
     <Router>
@@ -95,7 +102,7 @@ const UserRouter = () => {
         } />
         <Route path={ROUTES.ADMIN_MOVIES} element={
           <AdminRoute>
-            <AdminMovies/>
+            <AdminPendingMoviesPage/>
             </AdminRoute>
         } />
         
@@ -113,6 +120,38 @@ const UserRouter = () => {
           <AdminRoute>
             <AdminUsers/>
             </AdminRoute>
+        } />
+
+        {/* Owner Routes */}
+        <Route path={ROUTES.OWNER_DASHBOARD} element={
+          <OwnerRoute>
+            <OwnerDashboard/>
+          </OwnerRoute>
+        } />
+        <Route path={ROUTES.OWNER_SCREENS} element={
+          <OwnerRoute>
+            <OwnerScreens/>
+          </OwnerRoute>
+        } />
+        <Route path={ROUTES.OWNER_SETTINGS} element={
+          <OwnerRoute>
+            <OwnerProfile/>
+          </OwnerRoute>
+        } />
+        <Route path="/owner/movies/new" element={
+          <OwnerRoute>
+            <OwnerMovieFormPage/>
+          </OwnerRoute>
+        } />
+        <Route path="/owner/movies/:movieId/edit" element={
+          <OwnerRoute>
+            <OwnerMovieFormPage/>
+          </OwnerRoute>
+        } />
+        <Route path={ROUTES.OWNER_MOVIES} element={
+          <OwnerRoute>
+            <OwnerMoviesPage/>
+          </OwnerRoute>
         } />
 
         

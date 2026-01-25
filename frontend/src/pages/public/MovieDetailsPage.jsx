@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { getMovieById } from  '../../services/movie'
-import { Box, Container, Typography, Chip, Grid, Paper, Button, Stack, Skeleton } from '@mui/material'
+import { getMovieById } from '../../services/movie.public.service'
+import { Box, Container, Typography, Chip, Grid, Paper, Button, Stack, Skeleton, Alert } from '@mui/material'
 
 const MetaItem = ({ label, value }) => (
 	<Stack spacing={0.5}>
@@ -14,10 +14,22 @@ const MovieDetailsPage = () => {
 	const { id } = useParams()
 	const [movie, setMovie] = useState(null)
 	const [loading, setLoading] = useState(true)
+	const [error, setError] = useState(null)
 
 	useEffect(() => {
 		let mounted = true
-		getMovieById(id).then((m) => { if (mounted) setMovie(m) }).finally(() => mounted && setLoading(false))
+		setLoading(true)
+		setError(null)
+		getMovieById(id)
+			.then((m) => {
+				if (mounted) setMovie(m)
+			})
+			.catch((err) => {
+				if (mounted) setError(err.message || 'Failed to load movie details')
+			})
+			.finally(() => {
+				if (mounted) setLoading(false)
+			})
 		return () => { mounted = false }
 	}, [id])
 
@@ -50,6 +62,16 @@ const MovieDetailsPage = () => {
 
 			{/* Content */}
 			<Container maxWidth="lg" sx={{ py: 4 }}>
+				{error && (
+					<Alert severity="error" sx={{ mb: 3 }}>
+						{error}
+					</Alert>
+				)}
+				{!loading && !error && !movie && (
+					<Alert severity="info" sx={{ mb: 3 }}>
+						Movie not found
+					</Alert>
+				)}
 				<Grid container spacing={3}>
 					<Grid item xs={12} md={8}>
 						<Paper elevation={0} sx={{ p: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>

@@ -15,7 +15,7 @@ import {
 	Stack
 } from '@mui/material'
 import { ArrowBackIosNew, ArrowForwardIos } from '@mui/icons-material'
-import { getFeaturedMovies, getRecommendedMovies, getTrendingSearches } from '../../services/movie'
+import { getPublicMovies } from '../../services/movie.public.service'
 import { useNavigate } from 'react-router-dom'
 
 const Carousel = ({ items = [], onSelect }) => {
@@ -114,14 +114,25 @@ const HomePage = () => {
 
 	useEffect(() => {
 		let mounted = true
-		Promise.all([
-			getFeaturedMovies(),
-			getRecommendedMovies(),
-			getTrendingSearches()
-		]).then(([f, r, t]) => {
-			if (!mounted) return
-			setFeatured(f); setRecommended(r); setTrending(t)
-		}).finally(() => mounted && setLoading(false))
+		getPublicMovies()
+			.then((movies) => {
+				if (!mounted) return
+				// Use first 3 movies as featured
+				setFeatured(movies.slice(0, 3) || [])
+				// Use remaining movies as recommended
+				setRecommended(movies.slice(3) || [])
+				// Generate trending searches from movie titles
+				setTrending(movies.slice(0, 10).map(m => m.title) || [])
+			})
+			.catch((error) => {
+				console.error('Error loading movies:', error)
+				if (mounted) {
+					setFeatured([])
+					setRecommended([])
+					setTrending([])
+				}
+			})
+			.finally(() => mounted && setLoading(false))
 		return () => { mounted = false }
 	}, [])
 
