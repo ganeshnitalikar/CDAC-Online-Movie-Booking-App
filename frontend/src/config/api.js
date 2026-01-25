@@ -2,6 +2,7 @@
 
 export const API_CONFIG = {
   BASE_URL: import.meta.env.REACT_APP_API_URL || 'http://localhost:4000',
+  MOVIE_BASE_URL: import.meta.env.REACT_APP_MOVIE_API_URL || 'http://localhost:8080',
    ///BASE_URL: import.meta.env.REACT_APP_API_URL,
   // API Endpoints
   ENDPOINTS: {
