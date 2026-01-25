@@ -1,8 +1,8 @@
 
 
 export const API_CONFIG = {
-  BASE_URL: import.meta.env.REACT_APP_API_URL || 'http://localhost:4000',
-   ///BASE_URL: import.meta.env.REACT_APP_API_URL,
+   //BASE_URL: import.meta.env.REACT_APP_API_URL || 'http://localhost:4000',
+   BASE_URL: import.meta.env.VITE_REACT_APP_API_URL,
   // API Endpoints
   ENDPOINTS: {
     AUTH: {

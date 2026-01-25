@@ -1,22 +1,55 @@
 // Mock user services for dashboard, bookings, profile, and payments
 // Replace with real API calls later
 
-export const getUserProfile = async () => {
-	await new Promise(r => setTimeout(r, 250));
-	return {
-		id: 1,
-		name: 'MOCK USER',
-		email: 'user@moviehub.com',
-		phone: '+1 (555) 123-4567',
-		role: 'user',
-		location: 'Mumbai'
-	}
-}
+// export const getUserProfile = async () => {
+// 	await new Promise(r => setTimeout(r, 250));
+// 	return {
+// 		id: 1,
+// 		name: 'MOCK USER',
+// 		email: 'user@moviehub.com',
+// 		phone: '+1 (555) 123-4567',
+// 		role: 'user',
+// 		location: 'Mumbai'
+// 	}
+// }
 
+// export const updateUserProfile = async (payload) => {
+// 	await new Promise(r => setTimeout(r, 400));
+// 	return { success: true, user: { ...payload } }
+// }
+
+import axiosInstance from "../config/axiosInstance";
+import { API_CONFIG } from "../config/api";
+export const getUserProfile = async () => {
+  const res = await axiosInstance.get(API_CONFIG.ENDPOINTS.AUTH.GET_PROFILE);
+
+  // backend wrapper: result.createResult(null, users[0])
+  const user = res.data.data;
+
+  // map backend fields → frontend fields
+  return {
+    id: user.user_id,
+    name: user.full_name,
+    email: user.email,
+    phone: user.phone_number,
+    location: user.city,
+    role: user.role,
+  };
+};
+
+/**
+ * UPDATE USER PROFILE
+ */
 export const updateUserProfile = async (payload) => {
-	await new Promise(r => setTimeout(r, 400));
-	return { success: true, user: { ...payload } }
-}
+  const res = await axiosInstance.put('/user/update-profile', {
+    full_name: payload.name,
+    email: payload.email,
+    phone_number: payload.phone,
+    city: payload.location,
+  });
+
+  return res.data;
+};
 
 export const getUserPreferences = async () => {
 	await new Promise(r => setTimeout(r, 200));

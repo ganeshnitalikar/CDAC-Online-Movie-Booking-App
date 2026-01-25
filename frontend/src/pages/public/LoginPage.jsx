@@ -49,6 +49,13 @@ const LoginPage = () => {
     clearError();
   }, [clearError]);
 
+
+    useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
+
   // ---------------- VALIDATION ----------------
   const validateForm = () => {
     const errors = {};
@@ -269,4 +276,5 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
+
 

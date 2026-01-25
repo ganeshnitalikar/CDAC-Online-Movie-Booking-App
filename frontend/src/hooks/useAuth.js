@@ -38,8 +38,9 @@ export const useAuth = () => {
       if (!response?.data?.token) {
         throw new Error("Invalid login response");
       }
-
+      console.log(response);
       const user = {
+        name : response.data.full_name,
         email: credentials.email,
         role: response.data.role,
       };
