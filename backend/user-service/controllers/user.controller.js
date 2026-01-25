@@ -163,6 +163,7 @@ const login = async (req, res) => {
 
       return res.status(200).send(
         result.createResult(null, {
+          full_name : user.full_name,
           token,
           refresh_token: refreshToken,
           role: user.role
