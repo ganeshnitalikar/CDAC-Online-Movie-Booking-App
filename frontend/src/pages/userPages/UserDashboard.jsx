@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Box, Container, Typography, Grid, Paper, Stack, Button, Chip, Skeleton } from '@mui/material'
 import { useAuth } from '../../hooks/useAuth'
-import { getUserBookings } from '../../services/user'
+import { getUserBookings, getUserProfile } from '../../services/user'
 import { useNavigate } from 'react-router-dom'
 
 const QuickAction = ({ title, description, action, onClick }) => (
