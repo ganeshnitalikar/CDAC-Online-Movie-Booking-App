@@ -178,7 +178,7 @@ const login = async (req, res) => {
 const updateProfile = (req, res) => {
   const { name, phone , city } = req.body;
   const userId = req.user.user_id; // from auth middleware
-
+ 
   if (!name && !phone && !city) {
     return res.status(400).send(
       result.createResult("At least one field is required to update")
@@ -196,6 +196,7 @@ const updateProfile = (req, res) => {
     [name, phone, city, userId],
     (err, response) => {
       if (err) {
+        console.log(err);
         return res.status(500).send(result.createResult(err));
       }
 
@@ -289,6 +290,7 @@ const verifyAdminOtp = async (req, res) => {
 
       return res.status(200).send(
         result.createResult(null, {
+          full_name : user.full_name,
           token: accessToken,
           refresh_token: refreshToken,
           role: user.role
