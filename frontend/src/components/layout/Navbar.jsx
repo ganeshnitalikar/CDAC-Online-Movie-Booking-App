@@ -181,10 +181,10 @@ const Navbar = () => {
               fontSize: '1rem',
             }}
           >
-            M
+            C
           </Box>
           <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-            MovieHub
+            CineVerse
           </Typography>
         </Box>
         <IconButton onClick={toggleDrawer(false)} size="small">
@@ -366,7 +366,7 @@ const Navbar = () => {
                 fontSize: '1.2rem',
               }}
             >
-              M
+              C
             </Box>
             <Typography
               variant="h6"
@@ -379,7 +379,7 @@ const Navbar = () => {
                 display: { xs: 'none', sm: 'block' },
               }}
             >
-              MovieHub
+              CineVerse
             </Typography>
           </Box>
 
