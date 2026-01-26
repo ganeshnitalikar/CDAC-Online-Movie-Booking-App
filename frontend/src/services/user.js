@@ -65,6 +65,14 @@ export const updateUserProfile = async (formData) => {
 
 };
 
+
+export const deleteUserAccount = async () => {
+  const res = await axiosInstance.delete(
+    API_CONFIG.ENDPOINTS.AUTH.DELETE_PROFILE
+  );
+  return res.data;
+};
+
 export const getUserPreferences = async () => {
 	await new Promise(r => setTimeout(r, 200));
 	return {

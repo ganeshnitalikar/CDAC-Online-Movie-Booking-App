@@ -29,6 +29,11 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme as useCustomTheme } from '../../hooks/useTheme';
 import { getUserPreferences, updateUserPreferences } from '../../services/user';
+import { Link as RouterLink } from 'react-router-dom';
+import { ROUTES } from '../../constants/routes';
+import { deleteUserAccount } from '../../services/user';
+import { useNavigate } from 'react-router-dom';
+
 
 const UserSettings = () => {
 	const { user } = useAuth();
@@ -41,6 +46,31 @@ const UserSettings = () => {
 		darkMode: mode === 'dark',
 		favoriteGenres: ['Action', 'Drama'],
 	});
+   const navigate = useNavigate();
+
+const handleDeleteAccount = async () => {
+  const confirmDelete = window.confirm(
+    "Are you sure you want to delete your account? This cannot be undone."
+  );
+
+  if (!confirmDelete) return;
+
+  try {
+    await deleteUserAccount();
+
+    // Clear auth data
+    localStorage.removeItem("authToken");
+
+    // Optional: if you have logout() in context
+    // logout();
+
+    alert("Account deleted successfully");
+
+    navigate(ROUTES.HOME);
+  } catch (err) {
+    alert("Failed to delete account");
+  }
+};
 
 	const fetchPreferences = async () => {
 		setLoading(true);
@@ -376,19 +406,25 @@ const UserSettings = () => {
 								Account Actions
 							</Typography>
 							<Stack spacing={2}>
-								<Button
+							    <Button
+									component={RouterLink}
+									to={ROUTES.FORGOT_PASSWORD}
 									variant="outlined"
 									color="warning"
-									sx={{ textTransform: 'none', alignSelf: 'flex-start' }}
-								>
+									sx={{
+										textTransform: 'none',
+										alignSelf: 'flex-start',
+									}}
+									>
 									Change Password
-								</Button>
+							     </Button>
 								<Button
-									variant="outlined"
-									color="error"
-									sx={{ textTransform: 'none', alignSelf: 'flex-start' }}
+								variant="outlined"
+								color="error"
+								onClick={handleDeleteAccount}
+								sx={{ textTransform: 'none', alignSelf: 'flex-start' }}
 								>
-									Delete Account
+								Delete Account
 								</Button>
 								<Typography variant="caption" color="text.secondary">
 									These actions are permanent and cannot be undone.
