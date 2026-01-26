@@ -18,6 +18,7 @@ import {
 import {
 	Movie as MovieIcon,
 	TheaterComedy as ScreenIcon,
+	AccessTime as ShowIcon,
 	Receipt as ReceiptIcon,
 	TrendingUp as TrendingUpIcon,
 	TrendingDown as TrendingDownIcon,
@@ -28,6 +29,9 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../constants/routes';
+import { getOwnerMovies } from '../../services/movie.owner.service';
+import { getOwnerScreens } from '../../services/ownerScreenService';
+import { getOwnerShows } from '../../services/ownerShowService';
 
 const StatCard = ({ title, value, change, changeType, icon, color, onClick }) => (
 	<Card
@@ -151,29 +155,47 @@ const OwnerDashboard = () => {
 	const [loading, setLoading] = useState(true);
 	const [refreshing, setRefreshing] = useState(false);
 
-	// Mock data - replace with actual API calls
 	const fetchData = async (isRefresh = false) => {
 		if (isRefresh) setRefreshing(true);
 		else setLoading(true);
 
 		try {
-			// TODO: Replace with actual API calls
-			// const statsData = await getOwnerStats();
-			// setStats(statsData);
-			
-			// Mock data for now
-			setTimeout(() => {
-				setStats({
-					totalMovies: 12,
-					totalScreens: 4,
-					totalRevenue: 125000,
-					pendingMovies: 2,
-				});
-				setLoading(false);
-				setRefreshing(false);
-			}, 500);
+			// Fetch all data in parallel
+			const [moviesData, screensData, showsData] = await Promise.all([
+				getOwnerMovies().catch(() => []),
+				getOwnerScreens().catch(() => []),
+				getOwnerShows().catch(() => []),
+			]);
+
+			const movies = Array.isArray(moviesData) ? moviesData : [];
+			const screens = Array.isArray(screensData) ? screensData : [];
+			const shows = Array.isArray(showsData) ? showsData : [];
+
+			// Calculate stats
+			const pendingMovies = movies.filter(
+				(m) => m.approved === null || m.approved === undefined
+			).length;
+
+			// Calculate revenue from shows (if shows have booking data)
+			// For now, we'll set it to 0 or calculate from shows if available
+			const totalRevenue = 0; // TODO: Calculate from actual booking data
+
+			setStats({
+				totalMovies: movies.length,
+				totalScreens: screens.length,
+				totalRevenue: totalRevenue,
+				pendingMovies: pendingMovies,
+			});
 		} catch (error) {
 			console.error('Error fetching dashboard data:', error);
+			// Set default values on error
+			setStats({
+				totalMovies: 0,
+				totalScreens: 0,
+				totalRevenue: 0,
+				pendingMovies: 0,
+			});
+		} finally {
 			setLoading(false);
 			setRefreshing(false);
 		}
@@ -312,12 +334,21 @@ const OwnerDashboard = () => {
 								</Grid>
 								<Grid item xs={12} sm={6}>
 									<QuickActionCard
+										title="Schedule Shows"
+										description="Schedule movies for your screens"
+										icon={<ShowIcon sx={{ fontSize: 20 }} />}
+										onClick={() => navigate(ROUTES.OWNER_SHOWS)}
+										color="info"
+									/>
+								</Grid>
+								<Grid item xs={12} sm={6}>
+									<QuickActionCard
 										title="My Movies"
 										description="View and manage all your movies"
 										count={stats.totalMovies}
 										icon={<MovieIcon sx={{ fontSize: 20 }} />}
 										onClick={() => navigate(ROUTES.OWNER_MOVIES)}
-										color="info"
+										color="warning"
 									/>
 								</Grid>
 								<Grid item xs={12} sm={6}>

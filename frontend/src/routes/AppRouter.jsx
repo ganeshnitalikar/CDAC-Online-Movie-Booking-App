@@ -32,9 +32,19 @@ import ForgotPassword from "../pages/public/ForgotPassword";
 import OwnerRoute from "./OwnerRoute";
 import OwnerDashboard from "../pages/ownerPages/OwnerDashboard";
 import OwnerScreens from "../pages/ownerPages/OwnerScreens";
+import OwnerShows from "../pages/ownerPages/OwnerShows";
 import OwnerProfile from "../pages/ownerPages/OwnerProfile";
 import OwnerMovieFormPage from "../pages/ownerPages/OwnerMovieFormPage";
 import OwnerMoviesPage from "../pages/ownerPages/OwnerMoviesPage";
+
+// Booking flow pages
+import TheatreSelectionPage from "../pages/bookingPages/TheatreSelectionPage";
+import ScreenSelectionPage from "../pages/bookingPages/ScreenSelectionPage";
+import ShowSelectionPage from "../pages/bookingPages/ShowSelectionPage";
+import SeatSelectionPage from "../pages/bookingPages/SeatSelectionPage";
+import BookingConfirmationPage from "../pages/bookingPages/BookingConfirmationPage";
+import PaymentPage from "../pages/bookingPages/PaymentPage";
+import TicketPage from "../pages/bookingPages/TicketPage";
 const UserRouter = () => {
   return (
     <Router>
@@ -133,6 +143,11 @@ const UserRouter = () => {
             <OwnerScreens/>
           </OwnerRoute>
         } />
+        <Route path={ROUTES.OWNER_SHOWS} element={
+          <OwnerRoute>
+            <OwnerShows/>
+          </OwnerRoute>
+        } />
         <Route path={ROUTES.OWNER_SETTINGS} element={
           <OwnerRoute>
             <OwnerProfile/>
@@ -154,6 +169,30 @@ const UserRouter = () => {
           </OwnerRoute>
         } />
 
+        {/* Booking Flow Routes */}
+        <Route path="/movies/:movieId/theatres" element={<TheatreSelectionPage />} />
+        <Route path="/movies/:movieId/theatres/:theatreId/screens" element={<ScreenSelectionPage />} />
+        <Route path="/movies/:movieId/theatres/:theatreId/screens/:screenId/shows" element={<ShowSelectionPage />} />
+        <Route path="/shows/:showId/seats" element={
+          <UserRoute>
+            <SeatSelectionPage />
+          </UserRoute>
+        } />
+        <Route path="/booking/:bookingId/confirm" element={
+          <UserRoute>
+            <BookingConfirmationPage />
+          </UserRoute>
+        } />
+        <Route path="/booking/:bookingId/payment" element={
+          <UserRoute>
+            <PaymentPage />
+          </UserRoute>
+        } />
+        <Route path="/booking/:bookingId/ticket" element={
+          <UserRoute>
+            <TicketPage />
+          </UserRoute>
+        } />
         
         <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
         
