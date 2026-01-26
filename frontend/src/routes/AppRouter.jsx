@@ -45,6 +45,7 @@ import SeatSelectionPage from "../pages/bookingPages/SeatSelectionPage";
 import BookingConfirmationPage from "../pages/bookingPages/BookingConfirmationPage";
 import PaymentPage from "../pages/bookingPages/PaymentPage";
 import TicketPage from "../pages/bookingPages/TicketPage";
+import SearchPage from "../pages/public/searchPage";
 const UserRouter = () => {
   return (
     <Router>
@@ -58,6 +59,7 @@ const UserRouter = () => {
         <Route path={ROUTES.CONTACT} element={<ContactPage />} />
          <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
          <Route path={ROUTES.RESET_PASSWORD} element={<ResetPassword />} />
+         <Route path={ROUTES.SEARCH}  element={<SearchPage />} />
         <Route
           path={ROUTES.USER_DASHBOARD}
           element={

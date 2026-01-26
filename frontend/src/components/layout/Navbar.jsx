@@ -56,7 +56,9 @@ const Navbar = () => {
   const [profileAnchor, setProfileAnchor] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [currentLocation, setCurrentLocation] = useState('Pune');
+  
   const searchInputRef = useRef(null);
+ 
 
   // Location options
   const locations = [
@@ -114,14 +116,21 @@ const Navbar = () => {
   };
 
   // Handle search
+  // const handleSearch = (e) => {
+  //   e.preventDefault();
+  //   if (searchQuery.trim()) {
+  //     navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+  //     setSearchQuery('');
+  //   }
+  // };
   const handleSearch = (e) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-      setSearchQuery('');
-    }
-  };
+    const query = searchQuery.trim();
+    if (!query) return;
 
+    navigate(`/search?q=${encodeURIComponent(query)}`);
+    setSearchQuery('');
+  };
   // Handle location change
   const handleLocationSelect = (location) => {
     setCurrentLocation(location);

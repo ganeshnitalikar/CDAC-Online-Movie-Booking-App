@@ -13,6 +13,7 @@ export const ROUTES = {
     ADMIN_OTP_PAGE:  "/otp",
     FORGOT_PASSWORD: "/forgot-password",
     RESET_PASSWORD: "/reset-password",
+    SEARCH:"/search",
 
     // User routes
     USER_DASHBOARD: '/user/dashboard',
