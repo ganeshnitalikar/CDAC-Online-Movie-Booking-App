@@ -27,4 +27,16 @@ public class PublicMovieController {
     public ResponseEntity<MovieResponse> getMovieById(@PathVariable String movieId) {
         return ResponseEntity.ok(movieService.getMovieById(movieId));
     }
+    
+    @GetMapping("/search")
+    public ResponseEntity<List<MovieResponse>> searchMovies(
+            @RequestParam String q
+    ) {
+    	System.out.println("hello");
+    	
+        return ResponseEntity.ok(movieService.searchPublicMovies(q));
+    }
+
+   
+
 }

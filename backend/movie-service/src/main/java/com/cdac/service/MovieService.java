@@ -54,4 +54,7 @@ public interface MovieService {
      * View pending approval movies
      */
     List<MovieResponse> getPendingApprovalMovies();
+    
+    List<MovieResponse> searchPublicMovies(String keyword);
+    
 }
