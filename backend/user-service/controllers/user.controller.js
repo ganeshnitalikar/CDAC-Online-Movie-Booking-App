@@ -145,7 +145,7 @@ const login = async (req, res) => {
 
       // NORMAL USER LOGIN
       const token = jwt.sign(
-        { user_id: user.user_id, role: user.role },
+        { sub: user.user_id, role: user.role },
         config.secret,
         { expiresIn: "1h" }
       );
