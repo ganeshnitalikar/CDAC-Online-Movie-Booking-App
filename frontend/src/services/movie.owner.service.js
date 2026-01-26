@@ -142,14 +142,10 @@ export const updateMovie = async (movieId, payload) => {
     console.log("Updating movie:", movieIdStr);
     console.log("Update payload:", JSON.stringify(payload, null, 2));
 
+    // axiosMovieInstance interceptor already adds the Authorization header
     const response = await axiosMovieInstance.put(
       `/api/owner/movies/${movieIdStr}`,
-      payload,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
+      payload
     );
 
     return response.data;

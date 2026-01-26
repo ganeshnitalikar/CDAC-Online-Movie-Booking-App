@@ -21,6 +21,15 @@ export const ROUTES = {
     USER_PAYMENT: '/user/payment',
     USER_SETTINGS: '/user/settings',
 
+    // Booking flow routes
+    THEATRE_SELECTION: '/movies/:movieId/theatres',
+    SCREEN_SELECTION: '/movies/:movieId/theatres/:theatreId/screens',
+    SHOW_SELECTION: '/movies/:movieId/theatres/:theatreId/screens/:screenId/shows',
+    SEAT_SELECTION: '/shows/:showId/seats',
+    BOOKING_CONFIRM: '/booking/:bookingId/confirm',
+    BOOKING_PAYMENT: '/booking/:bookingId/payment',
+    BOOKING_TICKET: '/booking/:bookingId/ticket',
+
     // Owner routes
     OWNER_DASHBOARD: '/owner/dashboard',
     OWNER_MOVIES: '/owner/movies',

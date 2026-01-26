@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { getMovieById } from '../../services/movie.public.service'
 import { Box, Container, Typography, Chip, Grid, Paper, Button, Stack, Skeleton, Alert } from '@mui/material'
 
@@ -12,6 +12,7 @@ const MetaItem = ({ label, value }) => (
 
 const MovieDetailsPage = () => {
 	const { id } = useParams()
+	const navigate = useNavigate()
 	const [movie, setMovie] = useState(null)
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState(null)
@@ -124,7 +125,15 @@ const MovieDetailsPage = () => {
 						<Paper elevation={0} sx={{ p: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider', position: 'sticky', top: 16 }}>
 							<Typography variant="h6" sx={{ fontWeight: 700 }}>Book Tickets</Typography>
 							<Typography variant="body2" color="text.secondary" sx={{ mt: .5 }}>Select your date, time and seats on the next step.</Typography>
-							<Button fullWidth size="large" variant="contained" sx={{ mt: 2 }}>Continue</Button>
+							<Button 
+								fullWidth 
+								size="large" 
+								variant="contained" 
+								sx={{ mt: 2 }}
+								onClick={() => navigate(`/movies/${id}/theatres`)}
+							>
+								Continue
+							</Button>
 							<Button fullWidth size="large" variant="outlined" sx={{ mt: 1 }}>Watch Trailer</Button>
 						</Paper>
 					</Grid>

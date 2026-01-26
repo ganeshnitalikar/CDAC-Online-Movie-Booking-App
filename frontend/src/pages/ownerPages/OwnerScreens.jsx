@@ -28,6 +28,12 @@ import {
 	TheaterComedy as ScreenIcon,
 	Refresh as RefreshIcon,
 } from '@mui/icons-material';
+import {
+	getOwnerScreens,
+	createScreen,
+	updateScreen,
+	deleteScreen,
+} from '../../services/ownerScreenService';
 
 const OwnerScreens = () => {
 	const [screens, setScreens] = useState([]);
@@ -42,27 +48,17 @@ const OwnerScreens = () => {
 	});
 	const [submitting, setSubmitting] = useState(false);
 
-	// Mock data - replace with actual API calls
 	const fetchScreens = async () => {
 		setLoading(true);
 		setError(null);
 		try {
-			// TODO: Replace with actual API call
-			// const data = await getOwnerScreens();
-			// setScreens(data);
-			
-			// Mock data
-			setTimeout(() => {
-				setScreens([
-					{ id: 1, name: 'Screen 1', capacity: 150, features: 'Dolby Atmos, 3D' },
-					{ id: 2, name: 'Screen 2', capacity: 200, features: 'IMAX, 4K' },
-					{ id: 3, name: 'Screen 3', capacity: 100, features: 'Standard' },
-				]);
-				setLoading(false);
-			}, 500);
+			const data = await getOwnerScreens();
+			setScreens(Array.isArray(data) ? data : []);
 		} catch (err) {
 			console.error('Error fetching screens:', err);
 			setError(err.message || 'Failed to load screens');
+			setScreens([]);
+		} finally {
 			setLoading(false);
 		}
 	};
@@ -75,14 +71,15 @@ const OwnerScreens = () => {
 		if (screen) {
 			setEditingScreen(screen);
 			setFormData({
-				name: screen.name,
-				capacity: screen.capacity.toString(),
-				features: screen.features,
+				name: screen.name || '',
+				capacity: screen.capacity?.toString() || '',
+				features: screen.features || '',
 			});
 		} else {
 			setEditingScreen(null);
 			setFormData({ name: '', capacity: '', features: '' });
 		}
+		setError(null);
 		setDialogOpen(true);
 	};
 
@@ -102,31 +99,16 @@ const OwnerScreens = () => {
 		setError(null);
 
 		try {
-			// TODO: Replace with actual API call
-			// if (editingScreen) {
-			//   await updateScreen(editingScreen.id, formData);
-			// } else {
-			//   await createScreen(formData);
-			// }
+			if (editingScreen) {
+				await updateScreen(editingScreen.id, formData);
+			} else {
+				await createScreen(formData);
+			}
 			
-			// Mock success
-			setTimeout(() => {
-				if (editingScreen) {
-					setScreens(screens.map(s => 
-						s.id === editingScreen.id 
-							? { ...s, ...formData, capacity: parseInt(formData.capacity) }
-							: s
-					));
-				} else {
-					setScreens([...screens, {
-						id: screens.length + 1,
-						...formData,
-						capacity: parseInt(formData.capacity),
-					}]);
-				}
-				setSubmitting(false);
-				handleCloseDialog();
-			}, 500);
+			// Refresh the list
+			await fetchScreens();
+			setSubmitting(false);
+			handleCloseDialog();
 		} catch (err) {
 			console.error('Error saving screen:', err);
 			setError(err.message || 'Failed to save screen');
@@ -140,11 +122,9 @@ const OwnerScreens = () => {
 		}
 
 		try {
-			// TODO: Replace with actual API call
-			// await deleteScreen(screenId);
-			
-			// Mock success
-			setScreens(screens.filter(s => s.id !== screenId));
+			await deleteScreen(screenId);
+			// Refresh the list
+			await fetchScreens();
 		} catch (err) {
 			console.error('Error deleting screen:', err);
 			setError(err.message || 'Failed to delete screen');
