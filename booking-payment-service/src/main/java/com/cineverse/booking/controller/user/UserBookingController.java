@@ -52,6 +52,7 @@ public class UserBookingController {
     public List<UserBookingResponse> getUserBookings(
             @AuthenticationPrincipal Jwt jwt
     ) {
+    	System.out.print(jwt);
         return bookingService.getBookingsByUser(jwt.getSubject());
     }
 }

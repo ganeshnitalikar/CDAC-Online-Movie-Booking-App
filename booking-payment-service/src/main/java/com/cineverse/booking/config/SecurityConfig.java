@@ -28,27 +28,17 @@ public class SecurityConfig {
             .cors(Customizer.withDefaults())
             .authorizeHttpRequests(auth -> auth
 
-                // Razorpay webhook (signature protected)
-                .requestMatchers("/webhooks/**").permitAll()
+            	    .requestMatchers("/webhooks/**").permitAll()
 
-                // ADMIN
-                .requestMatchers("/admin/**").hasRole("ADMIN")
+            	    .requestMatchers("/admin/**").hasRole("ADMIN")
 
-                // THEATRE OWNER
-                .requestMatchers("/owner/**", "/booking/owner/**").hasRole("THEATER_OWNER")
-                
-                // USER
-                .requestMatchers("/user/**").hasRole("USER")
-                //public routes
-                .requestMatchers(
-                	    "/theatres/**",
-                	    "/screens/**",
-                	    "/shows/**",
-                	    "/swagger-ui"
-                	).permitAll()
+            	    .requestMatchers("/owner/**", "/booking/owner/**").hasRole("THEATER_OWNER")
 
+            	    .requestMatchers("/user/**").hasRole("USER")
 
-                .anyRequest().authenticated()
+            	    .requestMatchers("/theatres/**","/screens/**","/shows/**","/swagger-ui/**").permitAll()
+
+            	    .anyRequest().authenticated()
             )
             .oauth2ResourceServer(oauth ->
                 oauth.jwt(jwt ->

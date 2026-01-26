@@ -19,6 +19,7 @@
 // }
 
 import axiosInstance from "../config/axiosInstance";
+import axiosBookingInstance from "../config/axiosBookingInstance";
 import { API_CONFIG } from "../config/api";
 export const getUserProfile = async () => {
   const res = await axiosInstance.get(API_CONFIG.ENDPOINTS.AUTH.GET_PROFILE);
@@ -88,34 +89,42 @@ export const updateUserPreferences = async (prefs) => {
 	return { success: true, preferences: prefs }
 }
 
+// export const getUserBookings = async () => {
+// 	await new Promise(r => setTimeout(r, 300));
+// 	return [
+// 		{
+// 			id: 'bk_1001',
+// 			movieTitle: 'Eternal Horizon',
+// 			theater: 'PVR Icon, Phoenix',
+// 			showTime: '2025-11-12T19:30:00Z',
+// 			seats: ['E5', 'E6'],
+// 			total: 520,
+// 			status: 'UPCOMING'
+// 		},
+// 		{
+// 			id: 'bk_1000',
+// 			movieTitle: 'Neon Nights',
+// 			theater: 'INOX, R City',
+// 			showTime: '2025-08-01T16:00:00Z',
+// 			seats: ['B3'],
+// 			total: 240,
+// 			status: 'COMPLETED'
+// 		}
+// 	]
+// }
 export const getUserBookings = async () => {
-	await new Promise(r => setTimeout(r, 300));
-	return [
-		{
-			id: 'bk_1001',
-			movieTitle: 'Eternal Horizon',
-			theater: 'PVR Icon, Phoenix',
-			showTime: '2025-11-12T19:30:00Z',
-			seats: ['E5', 'E6'],
-			total: 520,
-			status: 'UPCOMING'
-		},
-		{
-			id: 'bk_1000',
-			movieTitle: 'Neon Nights',
-			theater: 'INOX, R City',
-			showTime: '2025-08-01T16:00:00Z',
-			seats: ['B3'],
-			total: 240,
-			status: 'COMPLETED'
-		}
-	]
-}
-
+  const res = await axiosBookingInstance.get("/booking/user/bookings");
+  console.log(res);
+  return res.data;
+};
+// export const cancelBooking = async (bookingId) => {
+// 	await new Promise(r => setTimeout(r, 400));
+// 	return { success: true, id: bookingId }
+// }
 export const cancelBooking = async (bookingId) => {
-	await new Promise(r => setTimeout(r, 400));
-	return { success: true, id: bookingId }
-}
+  await axiosBookingInstance.put(`/booking/user/bookings/${bookingId}/cancel`);
+};
+
 
 export const getPaymentMethods = async () => {
 	await new Promise(r => setTimeout(r, 200));

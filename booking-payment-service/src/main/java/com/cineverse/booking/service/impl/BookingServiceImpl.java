@@ -130,7 +130,7 @@ public class BookingServiceImpl implements BookingService {
 
         List<Booking> bookings =
                 bookingRepository.findByUserIdOrderByIdDesc(userId);
-
+      System.out.println(bookings);
         return bookings.stream()
                 .map(booking -> {
 
