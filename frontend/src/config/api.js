@@ -23,6 +23,9 @@ export const API_CONFIG = {
       DELETE_PROFILE:"/user/delete-account"
 
     },
+     ADMIN: {
+      ADD_THEATER_OWNER: '/admin/add-theater-owner',
+    },
     MOVIES: {
       LIST: '/movies',
       DETAILS: '/movies/:id',
