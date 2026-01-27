@@ -7,14 +7,10 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class CreateScreenRequest {
+public class UpdateScreenRequest {
 
     @NotBlank
     private String name;
-    
-    @NotNull
-    private int capacity;
-    
 
     @NotNull
     private Long theatreId;

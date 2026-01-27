@@ -2,6 +2,7 @@ package com.cineverse.booking.controller.owner;
 
 import com.cineverse.booking.dto.request.CreateScreenRequest;
 import com.cineverse.booking.dto.request.CreateShowRequest;
+import com.cineverse.booking.dto.request.UpdateScreenRequest;
 import com.cineverse.booking.dto.response.ScreenResponse;
 import com.cineverse.booking.entity.Screen;
 import com.cineverse.booking.entity.Show;
@@ -35,7 +36,17 @@ public class OwnerShowController {
                 jwt.getClaim("role")
         );
     }
-    
+    @DeleteMapping("/screens/{screenId}")
+    public void deleteScreen(
+            @PathVariable String screenId,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        screenService.deleteScreen(
+                screenId,
+                jwt.getSubject()
+        );
+    }
+
     @GetMapping("/screens")
     public List<ScreenResponse> getOwnerScreens(
             @AuthenticationPrincipal Jwt jwt

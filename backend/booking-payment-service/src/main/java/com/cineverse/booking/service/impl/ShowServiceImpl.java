@@ -2,8 +2,10 @@ package com.cineverse.booking.service.impl;
 
 import com.cineverse.booking.dto.request.CreateShowRequest;
 import com.cineverse.booking.dto.response.ShowResponse;
+import com.cineverse.booking.dto.response.ShowSeatDetailsResponse;
 import com.cineverse.booking.entity.Screen;
 import com.cineverse.booking.entity.Show;
+import com.cineverse.booking.entity.Theatre;
 import com.cineverse.booking.exception.AccessDeniedException;
 import com.cineverse.booking.exception.ResourceNotFoundException;
 import com.cineverse.booking.repository.ScreenRepository;
@@ -24,6 +26,8 @@ public class ShowServiceImpl implements ShowService {
 
     private final ShowRepository showRepository;
     private final ScreenRepository screenRepository;
+    
+    
     
     @Override
     @Transactional
@@ -72,11 +76,26 @@ public class ShowServiceImpl implements ShowService {
         return showRepository.save(show);
     }
 
+    @Transactional
     @Override
-    public Show getShowById(Long showId) {
-        return showRepository.findById(showId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Show not found"));
+    public ShowSeatDetailsResponse getShowById(Long showId) {
+
+        Show show = showRepository.findById(showId)
+                .orElseThrow(() -> new ResourceNotFoundException("Show not found"));
+
+        Screen screen = show.getScreen();
+        Theatre theatre = screen.getTheatre();
+
+        return new ShowSeatDetailsResponse(
+                show.getId(),
+                show.getMovieId(),
+                theatre.getId(),
+                theatre.getName(),
+                screen.getId(),
+                screen.getName(),
+                show.getStartTime(),
+                show.getEndTime()
+        );
     }
 
     @Override

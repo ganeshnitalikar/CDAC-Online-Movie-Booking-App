@@ -14,5 +14,4 @@ public class CreateTheatreRequest {
     @NotBlank
     private String city;
 
-    // ownerId comes from JWT, NOT from request
 }
