@@ -67,12 +67,20 @@ export const getShowsByScreen = async (screenId) => {
  * @returns {Promise<Object>} Show object
  */
 export const getShowById = async (showId) => {
+  const token = localStorage.getItem("authToken");
+  if (!token) {
+    throw new Error("Authentication required. Please login.");
+  }
   if (!showId) {
     throw new Error("Show ID is required");
   }
 
   try {
-    const response = await axiosBookingInstance.get(`/shows/${showId}`);
+    const response = await axiosBookingInstance.get(`/shows/${showId}`,{
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     return response.data;
   } catch (error) {
     console.error("Error fetching show details:", error);

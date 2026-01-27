@@ -112,6 +112,18 @@ const HomePage = () => {
 	const [trending, setTrending] = useState([])
 	const [loading, setLoading] = useState(true)
 
+	const recommendedRef = React.useRef(null)
+
+const scrollRecommended = (direction) => {
+	if (!recommendedRef.current) return
+	const scrollAmount = 300
+	recommendedRef.current.scrollBy({
+		left: direction === 'left' ? -scrollAmount : scrollAmount,
+		behavior: 'smooth'
+	})
+}
+
+
 	useEffect(() => {
 		let mounted = true
 		getPublicMovies()
@@ -146,27 +158,80 @@ const HomePage = () => {
 				<Carousel items={featured} onSelect={handleSelectMovie} />
 
 				{/* Recommended Grid */}
-				<Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-					<Typography variant="h5" sx={{ fontWeight: 700 }}>Recommended For You</Typography>
-					<Button variant="text">See all</Button>
-				</Stack>
-				<Grid container spacing={2}>
-					{(loading ? Array.from({ length: 8 }) : recommended.slice(0, 8)).map((m, i) => (
-						<Grid item xs={6} sm={4} md={3} key={m?.id || i}>
-							{loading ? (
-								<Card sx={{ borderRadius: 2 }}>
-									<Skeleton variant="rectangular" height={240} />
-									<CardContent>
-										<Skeleton width="80%" />
-										<Skeleton width="60%" />
-									</CardContent>
-								</Card>
-							) : (
-								<MovieCard movie={m} onClick={handleSelectMovie} />
-							)}
-						</Grid>
-					))}
-				</Grid>
+				{/* Recommended Movies */}
+<Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+	<Typography variant="h5" sx={{ fontWeight: 700 }}>
+		Recommended For You
+	</Typography>
+
+	<Button variant="text" onClick={() => navigate('/movies')}>
+		See all
+	</Button>
+</Stack>
+
+<Box sx={{ position: 'relative' }}>
+	{/* Left Arrow */}
+	<IconButton
+		onClick={() => scrollRecommended('left')}
+		sx={{
+			position: 'absolute',
+			left: -16,
+			top: '40%',
+			zIndex: 2,
+			bgcolor: 'background.paper',
+			boxShadow: 2,
+			'&:hover': { bgcolor: 'grey.100' }
+		}}
+	>
+		<ArrowBackIosNew fontSize="small" />
+	</IconButton>
+
+	{/* Movies Row */}
+	<Box
+		ref={recommendedRef}
+		sx={{
+			display: 'flex',
+			gap: 2,
+			overflowX: 'auto',
+			scrollBehavior: 'smooth',
+			pb: 1,
+			'&::-webkit-scrollbar': { display: 'none' }
+		}}
+	>
+		{(loading ? Array.from({ length: 10 }) : recommended).map((m, i) => (
+			<Box key={m?.id || i} sx={{ minWidth: 220 }}>
+				{loading ? (
+					<Card sx={{ borderRadius: 2 }}>
+						<Skeleton variant="rectangular" height={240} />
+						<CardContent>
+							<Skeleton width="80%" />
+							<Skeleton width="60%" />
+						</CardContent>
+					</Card>
+				) : (
+					<MovieCard movie={m} onClick={handleSelectMovie} />
+				)}
+			</Box>
+		))}
+	</Box>
+
+	{/* Right Arrow */}
+	<IconButton
+		onClick={() => scrollRecommended('right')}
+		sx={{
+			position: 'absolute',
+			right: -16,
+			top: '40%',
+			zIndex: 2,
+			bgcolor: 'background.paper',
+			boxShadow: 2,
+			'&:hover': { bgcolor: 'grey.100' }
+		}}
+	>
+		<ArrowForwardIos fontSize="small" />
+	</IconButton>
+</Box>
+
 
 				{/* Trending Searches */}
 				<Typography variant="h5" sx={{ fontWeight: 700, mt: 5, mb: 2 }}>Trending Searches</Typography>

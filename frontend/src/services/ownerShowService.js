@@ -26,6 +26,10 @@ export const getOwnerShows = async (filters = {}) => {
         Authorization: `Bearer ${token}`,
       },
       params: filters,
+    },{
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
     return response.data || [];
   } catch (error) {

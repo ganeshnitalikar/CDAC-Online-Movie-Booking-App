@@ -41,11 +41,28 @@ const ShowSelectionPage = () => {
 					getShowsByScreen(screenId),
 					getMovieById(movieId),
 				]);
-				// Filter shows for this movie
-				const movieShows = Array.isArray(showsData)
-					? showsData.filter((show) => show.movieId === Number(movieId) || show.movie?.id === Number(movieId))
-					: [];
-				setShows(movieShows);
+				
+				// Backend should already return shows for this screen, render all shows
+				// Only filter if backend doesn't filter by movie
+				const allShows = Array.isArray(showsData) ? showsData : [];
+				
+				// Try to filter by movie if movieId is available, but be flexible with field names
+				const movieShows = allShows.filter((show) => {
+					// Check multiple possible field names and formats
+					const showMovieId = show.movieId || show.movieId || show.movie?.id || show.movie_id;
+					return !movieId || !showMovieId || 
+						showMovieId === Number(movieId) || 
+						showMovieId === String(movieId) ||
+						String(showMovieId) === String(movieId);
+				});
+				
+				// If filtering removed all shows, use all shows (backend might already filter)
+				const finalShows = movieShows.length > 0 ? movieShows : allShows;
+				
+				console.log('Shows received from backend:', showsData);
+				console.log('Filtered shows:', finalShows);
+				
+				setShows(finalShows);
 				setMovie(movieData);
 			} catch (err) {
 				console.error('Error fetching data:', err);
@@ -179,20 +196,20 @@ const ShowSelectionPage = () => {
 												<Stack direction="row" spacing={1} alignItems="center">
 													<TimeIcon color="primary" />
 													<Typography variant="h6" sx={{ fontWeight: 700 }}>
-														{formatShowTime(show.showTime || show.startTime)}
+														{formatShowTime(show.showTime || show.startTime || show.show_time || show.start_time)}
 													</Typography>
 												</Stack>
-												{show.showTime && (
+												{(show.showTime || show.startTime || show.show_time) && (
 													<Stack direction="row" spacing={1} alignItems="center">
 														<CalendarIcon fontSize="small" color="action" />
 														<Typography variant="body2" color="text.secondary">
-															{formatShowDate(show.showTime)}
+															{formatShowDate(show.showTime || show.startTime || show.show_time)}
 														</Typography>
 													</Stack>
 												)}
-												{show.price && (
+												{(show.price || show.ticketPrice) && (
 													<Chip
-														label={`₹${show.price}`}
+														label={`₹${show.price || show.ticketPrice}`}
 														color="primary"
 														variant="outlined"
 														size="small"
