@@ -373,8 +373,9 @@ export const createScreenForTheatre = async (theatreId, payload) => {
     }
 
     const response = await axiosBookingInstance.post(
-      `/booking/owner/theatres/${theatreId}/screens`,
+      `/booking/owner/screens`,
       {
+        theatreId: theatreId,
         name: payload.name.trim(),
         normalPrice: parseFloat(payload.normalPrice),
         premiumPrice: parseFloat(payload.premiumPrice),
