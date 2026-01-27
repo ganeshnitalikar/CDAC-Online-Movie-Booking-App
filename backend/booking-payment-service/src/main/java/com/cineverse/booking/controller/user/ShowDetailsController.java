@@ -1,8 +1,13 @@
 package com.cineverse.booking.controller.user;
 
+import com.cineverse.booking.dto.response.ShowSeatDetailsResponse;
 import com.cineverse.booking.entity.Show;
 import com.cineverse.booking.service.ShowService;
 import lombok.RequiredArgsConstructor;
+
+import java.util.Map;
+import java.util.HashMap;
+
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -11,9 +16,18 @@ import org.springframework.web.bind.annotation.*;
 public class ShowDetailsController {
 
     private final ShowService showService;
+    
+//    @GetMapping("/{showId}")
+//    public Map<String, Object> test(@PathVariable Long showId) {
+//        Map<String, Object> map = new HashMap<>();
+//        map.put("id", showId);
+//        return map;
+//    }
 
     @GetMapping("/{showId}")
-    public Show getShowById(@PathVariable Long showId) {
+    public ShowSeatDetailsResponse getShowById(
+            @PathVariable Long showId
+    ) {
         return showService.getShowById(showId);
     }
 }

@@ -43,6 +43,20 @@ public class ScreenServiceImpl implements ScreenService {
     }
     
     @Override
+    @Transactional
+    public void deleteScreen(String screenId, String ownerId) {
+
+        Screen screen = screenRepository
+                .findByIdAndTheatreOwnerId(Long.parseLong(screenId), ownerId)
+                .orElseThrow(() ->
+                        new RuntimeException("Screen not found or not authorized")
+                );
+
+        screenRepository.delete(screen);
+    }
+    
+    
+    @Override
     @Transactional()
     public List<ScreenResponse> getScreensByOwner(String ownerId) {
 

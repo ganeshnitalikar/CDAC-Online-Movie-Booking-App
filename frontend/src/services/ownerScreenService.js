@@ -291,7 +291,7 @@ export const getOwnerTheatres = async () => {
  * POST /owner/theatres
  * @param {Object} payload - Theatre data
  * @param {string} payload.name - Theatre name (required)
- * @param {string} payload.address - Theatre address
+ * @param {string} payload.city - Theatre city
  * @param {string} payload.phone - Theatre phone number
  * @returns {Promise<Object>} Created theatre object
  */
@@ -314,7 +314,7 @@ export const createOwnerTheatre = async (payload) => {
       "/booking/owner/theatres",
       {
         name: payload.name.trim(),
-        address: payload.address?.trim() || "",
+        city: payload.city?.trim() ?? "",
         phone: payload.phone?.trim() || "",
       },
       {

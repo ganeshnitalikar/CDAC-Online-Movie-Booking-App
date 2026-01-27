@@ -228,14 +228,14 @@ const OwnerScreens = () => {
 	};
 
 	const handleOpenTheatreDialog = () => {
-		setTheatreFormData({ name: '', address: '', phone: '' });
+		setTheatreFormData({ name: '', city: '', phone: '' });
 		setError(null);
 		setTheatreDialogOpen(true);
 	};
 
 	const handleCloseTheatreDialog = () => {
 		setTheatreDialogOpen(false);
-		setTheatreFormData({ name: '', address: '', phone: '' });
+		setTheatreFormData({ name: '', city: '', phone: '' });
 		setError(null);
 	};
 
@@ -252,10 +252,8 @@ const OwnerScreens = () => {
 			const newTheatre = await createOwnerTheatre(theatreFormData);
 			toast.success('Theatre added successfully!');
 			
-			// Refresh theatres list (don't auto-select, keep current selection)
 			await fetchTheatres(false);
 			
-			// Auto-select the newly created theatre
 			if (newTheatre && newTheatre.id) {
 				setSelectedTheatreId(newTheatre.id);
 			}
@@ -625,8 +623,8 @@ const OwnerScreens = () => {
 								label="city"
 								multiline
 								rows={2}
-								value={theatreFormData.address}
-								onChange={(e) => setTheatreFormData({ ...theatreFormData, address: e.target.value })}
+								value={theatreFormData.city}
+								onChange={(e) => setTheatreFormData({ ...theatreFormData, city: e.target.value })}
 								disabled={submittingTheatre}
 								helperText="Theatre location address"
 							/>
