@@ -11,4 +11,5 @@ public interface ScreenService {
     Screen createScreen(CreateScreenRequest request, String requesterId, String role);
 
     public List<ScreenResponse> getScreensByTheatre(Long theatreId);
+    List<ScreenResponse> getScreensByOwner(String ownerId);
 }

@@ -41,6 +41,24 @@ public class ScreenServiceImpl implements ScreenService {
 
         return screenRepository.save(screen);
     }
+    
+    @Override
+    @Transactional()
+    public List<ScreenResponse> getScreensByOwner(String ownerId) {
+
+        List<Screen> screens =
+                screenRepository.findByTheatreOwnerId(ownerId);
+
+        return screens.stream()
+                .map(screen -> new ScreenResponse(
+                        screen.getId(),
+                        screen.getName(),
+                        screen.getTheatre().getId(),
+                        screen.getTheatre().getName()
+                ))
+                .toList();
+    }
+    
     @Override
     @Transactional
     public List<ScreenResponse> getScreensByTheatre(Long theatreId) {

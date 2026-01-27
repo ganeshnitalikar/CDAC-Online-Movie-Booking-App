@@ -38,12 +38,14 @@ public class SecurityConfig {
                 .requestMatchers("/owner/**", "/booking/owner/**").hasRole("THEATER_OWNER")
                 
                 // USER
-                .requestMatchers("/user/**").hasRole("USER")
+                .requestMatchers("/user/**", "/booking/user/**").hasRole("USER")
                 //public routes
                 .requestMatchers(
                 	    "/theatres/**",
                 	    "/screens/**",
                 	    "/shows/**",
+                	    "/movies/**",
+                	    "/public/**",
                 	    "/swagger-ui"
                 	).permitAll()
 

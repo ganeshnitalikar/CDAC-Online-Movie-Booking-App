@@ -19,7 +19,12 @@ export const API_CONFIG = {
       RESET_PASSWORD:'/auth/reset-password',
       LOGOUT:'user/logout',
       GET_PROFILE:"/user/profile",
+      UPDATE_PROFILE:"/user/update-profile",
+      DELETE_PROFILE:"/user/delete-account"
 
+    },
+     ADMIN: {
+      ADD_THEATER_OWNER: '/admin/add-theater-owner',
     },
     MOVIES: {
       LIST: '/movies',

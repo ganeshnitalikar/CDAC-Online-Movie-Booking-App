@@ -229,4 +229,18 @@ public class MovieServiceImpl implements MovieService {
                 .updatedAt(movie.getUpdatedAt())
                 .build();
     }
+    @Override
+    public List<MovieResponse> searchPublicMovies(String keyword) {
+ 
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return List.of();
+        }
+
+        return movieRepository.searchMovies(keyword)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+
 }

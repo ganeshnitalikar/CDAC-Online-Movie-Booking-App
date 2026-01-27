@@ -1,10 +1,13 @@
 package com.cineverse.booking.service.impl;
 
 import com.cineverse.booking.dto.request.CreateTheatreRequest;
+import com.cineverse.booking.dto.response.TheatreResponse;
 import com.cineverse.booking.entity.Theatre;
 import com.cineverse.booking.exception.ResourceNotFoundException;
 import com.cineverse.booking.repository.TheatreRepository;
 import com.cineverse.booking.service.TheatreService;
+
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,9 +28,17 @@ public class TheatreServiceImpl implements TheatreService {
         return theatreRepository.save(theatre);
     }
 
-    @Override
-    public List<Theatre> getAllTheatres() {
-        return theatreRepository.findAll();
+
+    @Transactional
+    public List<TheatreResponse> getAllTheatres() {
+        return theatreRepository.findAll()
+                .stream()
+                .map(t -> new TheatreResponse(
+                        t.getId(),
+                        t.getName(),
+                        t.getCity()
+                ))
+                .toList();
     }
 
     @Override

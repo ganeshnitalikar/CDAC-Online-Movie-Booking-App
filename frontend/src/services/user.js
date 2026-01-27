@@ -40,14 +40,36 @@ export const getUserProfile = async () => {
 /**
  * UPDATE USER PROFILE
  */
-export const updateUserProfile = async (payload) => {
-  const res = await axiosInstance.put('/user/update-profile', {
-    full_name: payload.name,
-    email: payload.email,
-    phone_number: payload.phone,
-    city: payload.location,
-  });
+// export const updateUserProfile = async (payload) => {
+//   const res = await axiosInstance.put('/user/update-profile', {
+//     full_name: payload.name,
+//     email: payload.email,
+//     phone_number: payload.phone,
+//     city: payload.location,
+//   });
 
+//   return res.data;
+// };
+export const updateUserProfile = async (formData) => {
+	//console.log(formData);
+	const token=localStorage.getItem("authToken");
+  const payload = {
+    name: formData.name,
+    phone: formData.phone,
+    city: formData.location, 
+  };
+
+  const res = await axiosInstance.put(API_CONFIG.ENDPOINTS.AUTH.UPDATE_PROFILE, payload);
+    
+  return res.data;
+
+};
+
+
+export const deleteUserAccount = async () => {
+  const res = await axiosInstance.delete(
+    API_CONFIG.ENDPOINTS.AUTH.DELETE_PROFILE
+  );
   return res.data;
 };
 

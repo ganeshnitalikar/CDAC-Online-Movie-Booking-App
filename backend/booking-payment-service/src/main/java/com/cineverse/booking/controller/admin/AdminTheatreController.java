@@ -1,6 +1,7 @@
 package com.cineverse.booking.controller.admin;
 
 import com.cineverse.booking.dto.request.CreateTheatreRequest;
+import com.cineverse.booking.dto.response.TheatreResponse;
 import com.cineverse.booking.entity.Theatre;
 import com.cineverse.booking.service.TheatreService;
 import jakarta.validation.Valid;
@@ -28,7 +29,7 @@ public class AdminTheatreController {
     }
 
     @GetMapping
-    public List<Theatre> getAllTheatres() {
+    public List<TheatreResponse> getAllTheatres() {
         return theatreService.getAllTheatres();
     }
 }

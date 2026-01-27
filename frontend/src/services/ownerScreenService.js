@@ -14,6 +14,7 @@ import axiosBookingInstance from "../config/axiosBookingInstance";
 export const getOwnerScreens = async () => {
   try {
     const token = localStorage.getItem("authToken");
+   
     if (!token) {
       throw new Error("Authentication required. Please login.");
     }
@@ -49,11 +50,12 @@ export const getOwnerScreenById = async (screenId) => {
 
   try {
     const token = localStorage.getItem("authToken");
+    console.log("token", token);
     if (!token) {
       throw new Error("Authentication required. Please login.");
     }
 
-      const response = await axiosBookingInstance.get(`/booking/owner/screens/${screenId}`,{
+    const response = await axiosBookingInstance.get(`/booking/owner/screens/${screenId}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -102,7 +104,7 @@ export const createScreen = async (payload) => {
       name: payload.name.trim(),
       capacity: parseInt(payload.capacity, 10),
       features: payload.features?.trim() || "",
-    },{
+    }, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -157,7 +159,7 @@ export const updateScreen = async (screenId, payload) => {
     }
 
     const response = await axiosBookingInstance.put(
-      `/booking/owner/screens/${screenIdStr}`,
+      `booking/owner/screens/${screenIdStr}`,
       updatePayload,
       {
         headers: {
@@ -199,7 +201,7 @@ export const deleteScreen = async (screenId) => {
       throw new Error("Authentication required. Please login.");
     }
 
-    const response = await axiosBookingInstance.delete(`/booking/owner/screens/${screenId}`,{
+      const response = await axiosBookingInstance.delete(`/booking/owner/screens/${screenId}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

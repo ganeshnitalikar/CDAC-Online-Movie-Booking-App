@@ -25,11 +25,13 @@ import {
 	CheckCircle as CheckCircleIcon,
 	ArrowForward as ArrowForwardIcon,
 	Refresh as RefreshIcon,
+	PersonAdd as PersonAddIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../constants/routes';
 import { getAdminStats, getRecentActivity } from '../../services/admin';
+import AddTheatreOwnerModal from '../../components/admin/AddTheatreOwnerModal';
 
 const StatCard = ({ title, value, change, changeType, icon, color, onClick }) => (
 	<Card
@@ -145,6 +147,7 @@ const AdminDashBoard = () => {
 	const [recentActivity, setRecentActivity] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [refreshing, setRefreshing] = useState(false);
+	const [openAddOwnerModal, setOpenAddOwnerModal] = useState(false);
 
 	const fetchData = async (isRefresh = false) => {
 		if (isRefresh) setRefreshing(true);
@@ -204,15 +207,25 @@ const AdminDashBoard = () => {
 							Here's an overview of your platform
 						</Typography>
 					</Box>
-					<Button
-						variant="outlined"
-						startIcon={<RefreshIcon />}
-						onClick={handleRefresh}
-						disabled={refreshing}
-						sx={{ textTransform: 'none' }}
-					>
-						Refresh
-					</Button>
+					<Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+						<Button
+							variant="contained"
+							startIcon={<PersonAddIcon />}
+							onClick={() => setOpenAddOwnerModal(true)}
+							sx={{ textTransform: 'none' }}
+						>
+							Add Theatre Owner
+						</Button>
+						<Button
+							variant="outlined"
+							startIcon={<RefreshIcon />}
+							onClick={handleRefresh}
+							disabled={refreshing}
+							sx={{ textTransform: 'none' }}
+						>
+							Refresh
+						</Button>
+					</Stack>
 				</Stack>
 
 				{refreshing && (
@@ -480,6 +493,16 @@ const AdminDashBoard = () => {
 						</Stack>
 					</Grid>
 				</Grid>
+
+				{/* Add Theatre Owner Modal */}
+				<AddTheatreOwnerModal
+					open={openAddOwnerModal}
+					onClose={() => setOpenAddOwnerModal(false)}
+					onSuccess={() => {
+						// Refresh stats after adding new owner
+						fetchData(true);
+					}}
+				/>
 			</Container>
 		</Box>
 	);

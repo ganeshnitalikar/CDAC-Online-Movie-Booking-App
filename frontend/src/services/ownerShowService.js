@@ -21,7 +21,10 @@ export const getOwnerShows = async (filters = {}) => {
       throw new Error("Authentication required. Please login.");
     }
 
-    const response = await axiosBookingInstance.get("/owner/shows", {
+    const response = await axiosBookingInstance.get("/booking/owner/shows", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
       params: filters,
     },{
       headers: {
@@ -58,7 +61,7 @@ export const getOwnerShowById = async (showId) => {
       throw new Error("Authentication required. Please login.");
     }
 
-    const response = await axiosBookingInstance.get(`/owner/shows/${showId}`,{
+    const response = await axiosBookingInstance.get(`/booking/owner/shows/${showId}` ,{
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -104,12 +107,12 @@ export const createShow = async (payload) => {
       throw new Error("Authentication required. Please login.");
     }
 
-    const response = await axiosBookingInstance.post("/owner/shows", {
+    const response = await axiosBookingInstance.post("booking/owner/shows", {
       movieId: Number(payload.movieId),
       screenId: Number(payload.screenId),
       showTime: payload.showTime, // ISO datetime string
       price: Number(payload.price),
-    },{
+    }, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -170,7 +173,7 @@ export const updateShow = async (showId, payload) => {
     }
 
     const response = await axiosBookingInstance.put(
-      `/owner/shows/${showIdStr}`,
+      `booking/owner/shows/${showIdStr}`,
       updatePayload,
       {
         headers: {
@@ -212,7 +215,7 @@ export const deleteShow = async (showId) => {
       throw new Error("Authentication required. Please login.");
     }
 
-    const response = await axiosBookingInstance.delete(`/owner/shows/${showId}`,{
+    const response = await axiosBookingInstance.delete(`booking/owner/shows/${showId}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
