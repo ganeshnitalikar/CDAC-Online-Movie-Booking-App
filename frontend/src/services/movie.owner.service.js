@@ -19,7 +19,11 @@ export const getOwnerMovies = async () => {
       throw new Error("Authentication required. Please login.");
     }
 
-    const response = await axiosMovieInstance.get("/api/owner/movies");
+    const response = await axiosMovieInstance.get("/api/owner/movies" ,{
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     return response.data || [];
   } catch (error) {
     console.error("Error fetching owner movies:", error);

@@ -23,6 +23,10 @@ export const getOwnerShows = async (filters = {}) => {
 
     const response = await axiosBookingInstance.get("/owner/shows", {
       params: filters,
+    },{
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
     return response.data || [];
   } catch (error) {
@@ -54,7 +58,11 @@ export const getOwnerShowById = async (showId) => {
       throw new Error("Authentication required. Please login.");
     }
 
-    const response = await axiosBookingInstance.get(`/owner/shows/${showId}`);
+    const response = await axiosBookingInstance.get(`/owner/shows/${showId}`,{
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     return response.data;
   } catch (error) {
     console.error("Error fetching show details:", error);
@@ -101,6 +109,10 @@ export const createShow = async (payload) => {
       screenId: Number(payload.screenId),
       showTime: payload.showTime, // ISO datetime string
       price: Number(payload.price),
+    },{
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     return response.data;
@@ -159,7 +171,12 @@ export const updateShow = async (showId, payload) => {
 
     const response = await axiosBookingInstance.put(
       `/owner/shows/${showIdStr}`,
-      updatePayload
+      updatePayload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
 
     return response.data;
@@ -195,7 +212,11 @@ export const deleteShow = async (showId) => {
       throw new Error("Authentication required. Please login.");
     }
 
-    const response = await axiosBookingInstance.delete(`/owner/shows/${showId}`);
+    const response = await axiosBookingInstance.delete(`/owner/shows/${showId}`,{
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     return response.data || { success: true, message: "Show deleted successfully" };
   } catch (error) {

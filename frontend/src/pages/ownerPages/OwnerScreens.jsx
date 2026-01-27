@@ -20,6 +20,10 @@ import {
 	IconButton,
 	Chip,
 	CircularProgress,
+	FormControl,
+	InputLabel,
+	Select,
+	MenuItem,
 } from '@mui/material';
 import {
 	Add as AddIcon,
@@ -33,20 +37,36 @@ import {
 	createScreen,
 	updateScreen,
 	deleteScreen,
+	getOwnerTheatre,
+	getOwnerTheatres,
+	createOwnerTheatre,
+	createScreenForTheatre,
 } from '../../services/ownerScreenService';
+import { toast } from 'react-toastify';
 
 const OwnerScreens = () => {
 	const [screens, setScreens] = useState([]);
+	const [theatres, setTheatres] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
 	const [dialogOpen, setDialogOpen] = useState(false);
+	const [theatreDialogOpen, setTheatreDialogOpen] = useState(false);
 	const [editingScreen, setEditingScreen] = useState(null);
+	const [selectedTheatreId, setSelectedTheatreId] = useState(null);
 	const [formData, setFormData] = useState({
 		name: '',
+		normalPrice: '',
+		premiumPrice: '',
 		capacity: '',
 		features: '',
 	});
+	const [theatreFormData, setTheatreFormData] = useState({
+		name: '',
+		city: '',
+		phone: '',
+	});
 	const [submitting, setSubmitting] = useState(false);
+	const [submittingTheatre, setSubmittingTheatre] = useState(false);
 
 	const fetchScreens = async () => {
 		setLoading(true);
@@ -63,21 +83,68 @@ const OwnerScreens = () => {
 		}
 	};
 
+	const fetchTheatres = async (autoSelect = true) => {
+		try {
+			const theatresList = await getOwnerTheatres();
+			setTheatres(Array.isArray(theatresList) ? theatresList : []);
+			
+			// Auto-select first theatre if available and none selected
+			if (autoSelect && theatresList && theatresList.length > 0) {
+				setSelectedTheatreId((currentId) => {
+					if (!currentId) {
+						const firstTheatre = Array.isArray(theatresList) ? theatresList[0] : theatresList;
+						if (firstTheatre && firstTheatre.id) {
+							return firstTheatre.id;
+						}
+					}
+					return currentId;
+				});
+			}
+		} catch (err) {
+			console.error('Error fetching theatres:', err);
+		}
+	};
+
 	useEffect(() => {
+		fetchTheatres();
 		fetchScreens();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
+
+	// Update selectedTheatreId from screens if not set
+	useEffect(() => {
+		if (!selectedTheatreId && screens.length > 0) {
+			// Try to extract theatreId from screen data
+			const firstScreen = screens[0];
+			if (firstScreen.theatreId) {
+				setSelectedTheatreId(firstScreen.theatreId);
+			} else if (firstScreen.theatre?.id) {
+				setSelectedTheatreId(firstScreen.theatre.id);
+			}
+		}
+	}, [screens, selectedTheatreId]);
+
+	// Filter screens by selected theatre
+	const filteredScreens = selectedTheatreId
+		? screens.filter(screen => 
+			screen.theatreId === selectedTheatreId || 
+			screen.theatre?.id === selectedTheatreId
+		)
+		: screens;
 
 	const handleOpenDialog = (screen = null) => {
 		if (screen) {
 			setEditingScreen(screen);
 			setFormData({
 				name: screen.name || '',
+				normalPrice: screen.normalPrice?.toString() || screen.normal_price?.toString() || '',
+				premiumPrice: screen.premiumPrice?.toString() || screen.premium_price?.toString() || '',
 				capacity: screen.capacity?.toString() || '',
 				features: screen.features || '',
 			});
 		} else {
 			setEditingScreen(null);
-			setFormData({ name: '', capacity: '', features: '' });
+			setFormData({ name: '', normalPrice: '', premiumPrice: '', capacity: '', features: '' });
 		}
 		setError(null);
 		setDialogOpen(true);
@@ -86,11 +153,28 @@ const OwnerScreens = () => {
 	const handleCloseDialog = () => {
 		setDialogOpen(false);
 		setEditingScreen(null);
-		setFormData({ name: '', capacity: '', features: '' });
+		setFormData({ name: '', normalPrice: '', premiumPrice: '', capacity: '', features: '' });
 	};
 
 	const handleSubmit = async () => {
-		if (!formData.name || !formData.capacity) {
+		// For adding new screen, validate name and prices
+		if (!editingScreen) {
+			if (!formData.name?.trim()) {
+				setError('Screen name is required');
+				return;
+			}
+			if (!formData.normalPrice || parseFloat(formData.normalPrice) <= 0) {
+				setError('Normal price must be greater than 0');
+				return;
+			}
+			if (!formData.premiumPrice || parseFloat(formData.premiumPrice) <= 0) {
+				setError('Premium price must be greater than 0');
+				return;
+			}
+		}
+
+		// For editing, keep existing validation
+		if (editingScreen && (!formData.name || !formData.capacity)) {
 			setError('Name and capacity are required');
 			return;
 		}
@@ -101,8 +185,18 @@ const OwnerScreens = () => {
 		try {
 			if (editingScreen) {
 				await updateScreen(editingScreen.id, formData);
+				toast.success('Screen updated successfully!');
 			} else {
-				await createScreen(formData);
+				// Use new API endpoint for creating screen with theatreId
+				if (!selectedTheatreId) {
+					throw new Error('Please select a theatre first.');
+				}
+				await createScreenForTheatre(selectedTheatreId, {
+					name: formData.name,
+					normalPrice: formData.normalPrice,
+					premiumPrice: formData.premiumPrice,
+				});
+				toast.success('Screen added successfully!');
 			}
 			
 			// Refresh the list
@@ -111,7 +205,9 @@ const OwnerScreens = () => {
 			handleCloseDialog();
 		} catch (err) {
 			console.error('Error saving screen:', err);
-			setError(err.message || 'Failed to save screen');
+			const errorMessage = err.message || 'Failed to save screen';
+			setError(errorMessage);
+			toast.error(errorMessage);
 			setSubmitting(false);
 		}
 	};
@@ -128,6 +224,50 @@ const OwnerScreens = () => {
 		} catch (err) {
 			console.error('Error deleting screen:', err);
 			setError(err.message || 'Failed to delete screen');
+		}
+	};
+
+	const handleOpenTheatreDialog = () => {
+		setTheatreFormData({ name: '', address: '', phone: '' });
+		setError(null);
+		setTheatreDialogOpen(true);
+	};
+
+	const handleCloseTheatreDialog = () => {
+		setTheatreDialogOpen(false);
+		setTheatreFormData({ name: '', address: '', phone: '' });
+		setError(null);
+	};
+
+	const handleSubmitTheatre = async () => {
+		if (!theatreFormData.name?.trim()) {
+			setError('Theatre name is required');
+			return;
+		}
+
+		setSubmittingTheatre(true);
+		setError(null);
+
+		try {
+			const newTheatre = await createOwnerTheatre(theatreFormData);
+			toast.success('Theatre added successfully!');
+			
+			// Refresh theatres list (don't auto-select, keep current selection)
+			await fetchTheatres(false);
+			
+			// Auto-select the newly created theatre
+			if (newTheatre && newTheatre.id) {
+				setSelectedTheatreId(newTheatre.id);
+			}
+			
+			setSubmittingTheatre(false);
+			handleCloseTheatreDialog();
+		} catch (err) {
+			console.error('Error creating theatre:', err);
+			const errorMessage = err.message || 'Failed to create theatre';
+			setError(errorMessage);
+			toast.error(errorMessage);
+			setSubmittingTheatre(false);
 		}
 	};
 
@@ -158,12 +298,62 @@ const OwnerScreens = () => {
 							variant="contained"
 							startIcon={<AddIcon />}
 							onClick={() => handleOpenDialog()}
+							disabled={!selectedTheatreId}
 							sx={{ textTransform: 'none' }}
 						>
 							Add Screen
 						</Button>
 					</Stack>
 				</Stack>
+
+				{/* Theatre Selector */}
+				<Paper
+					elevation={0}
+					sx={{
+						p: 2,
+						mb: 3,
+						borderRadius: 2,
+						border: '1px solid',
+						borderColor: 'divider',
+					}}
+				>
+					<Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
+						<Typography variant="body2" color="text.secondary" sx={{ minWidth: 100 }}>
+							Select Theatre:
+						</Typography>
+						<FormControl size="small" sx={{ minWidth: 250 }}>
+							<InputLabel>Theatre</InputLabel>
+							<Select
+								value={selectedTheatreId || ''}
+								label="Theatre"
+								onChange={(e) => setSelectedTheatreId(e.target.value)}
+							>
+								{theatres.map((theatre) => (
+									<MenuItem key={theatre.id} value={theatre.id}>
+										{theatre.name || `Theatre ${theatre.id}`}
+									</MenuItem>
+								))}
+							</Select>
+						</FormControl>
+						<Button
+							variant="outlined"
+							size="small"
+							startIcon={<AddIcon />}
+							onClick={handleOpenTheatreDialog}
+							sx={{ textTransform: 'none' }}
+						>
+							Add Theatre
+						</Button>
+						{selectedTheatreId && (
+							<Chip
+								label={`${filteredScreens.length} screen${filteredScreens.length !== 1 ? 's' : ''}`}
+								size="small"
+								color="primary"
+								variant="outlined"
+							/>
+						)}
+					</Stack>
+				</Paper>
 
 				{/* Error Alert */}
 				{error && (
@@ -181,7 +371,26 @@ const OwnerScreens = () => {
 							</Grid>
 						))}
 					</Grid>
-				) : screens.length === 0 ? (
+				) : !selectedTheatreId ? (
+					<Paper
+						elevation={0}
+						sx={{
+							p: 6,
+							textAlign: 'center',
+							borderRadius: 3,
+							border: '1px solid',
+							borderColor: 'divider',
+						}}
+					>
+						<ScreenIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+						<Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
+							Select a Theatre
+						</Typography>
+						<Typography variant="body2" color="text.secondary">
+							Please select a theatre from the dropdown above to view and manage screens
+						</Typography>
+					</Paper>
+				) : filteredScreens.length === 0 ? (
 					<Paper
 						elevation={0}
 						sx={{
@@ -210,7 +419,7 @@ const OwnerScreens = () => {
 					</Paper>
 				) : (
 					<Grid container spacing={3}>
-						{screens.map((screen) => (
+						{filteredScreens.map((screen) => (
 							<Grid item xs={12} sm={6} md={4} key={screen.id}>
 								<Card
 									elevation={0}
@@ -288,6 +497,11 @@ const OwnerScreens = () => {
 					</DialogTitle>
 					<DialogContent>
 						<Stack spacing={3} sx={{ mt: 1 }}>
+							{error && (
+								<Alert severity="error" onClose={() => setError(null)}>
+									{error}
+								</Alert>
+							)}
 							<TextField
 								fullWidth
 								label="Screen Name"
@@ -295,26 +509,70 @@ const OwnerScreens = () => {
 								onChange={(e) => setFormData({ ...formData, name: e.target.value })}
 								required
 								disabled={submitting}
+								error={!!error && !formData.name?.trim()}
+								helperText={error && !formData.name?.trim() ? 'Screen name cannot be empty' : ''}
 							/>
-							<TextField
-								fullWidth
-								label="Capacity"
-								type="number"
-								value={formData.capacity}
-								onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
-								required
-								inputProps={{ min: 1 }}
-								disabled={submitting}
-								helperText="Number of seats"
-							/>
-							<TextField
-								fullWidth
-								label="Features"
-								value={formData.features}
-								onChange={(e) => setFormData({ ...formData, features: e.target.value })}
-								disabled={submitting}
-								helperText="e.g., Dolby Atmos, IMAX, 3D, 4K"
-							/>
+							{/* Show price fields when adding new screen */}
+							{!editingScreen && (
+								<>
+									<TextField
+										fullWidth
+										label="Normal Seat Price"
+										type="number"
+										value={formData.normalPrice}
+										onChange={(e) => setFormData({ ...formData, normalPrice: e.target.value })}
+										required
+										inputProps={{ min: 0.01, step: 0.01 }}
+										disabled={submitting}
+										error={!!error && (!formData.normalPrice || parseFloat(formData.normalPrice) <= 0)}
+										helperText={
+											error && (!formData.normalPrice || parseFloat(formData.normalPrice) <= 0)
+												? 'Normal price must be greater than 0'
+												: 'Price for normal seats (₹)'
+										}
+									/>
+									<TextField
+										fullWidth
+										label="Premium Seat Price"
+										type="number"
+										value={formData.premiumPrice}
+										onChange={(e) => setFormData({ ...formData, premiumPrice: e.target.value })}
+										required
+										inputProps={{ min: 0.01, step: 0.01 }}
+										disabled={submitting}
+										error={!!error && (!formData.premiumPrice || parseFloat(formData.premiumPrice) <= 0)}
+										helperText={
+											error && (!formData.premiumPrice || parseFloat(formData.premiumPrice) <= 0)
+												? 'Premium price must be greater than 0'
+												: 'Price for premium seats (₹)'
+										}
+									/>
+								</>
+							)}
+							{/* Only show capacity and features when editing */}
+							{editingScreen && (
+								<>
+									<TextField
+										fullWidth
+										label="Capacity"
+										type="number"
+										value={formData.capacity}
+										onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
+										required
+										inputProps={{ min: 1 }}
+										disabled={submitting}
+										helperText="Number of seats"
+									/>
+									<TextField
+										fullWidth
+										label="Features"
+										value={formData.features}
+										onChange={(e) => setFormData({ ...formData, features: e.target.value })}
+										disabled={submitting}
+										helperText="e.g., Dolby Atmos, IMAX, 3D, 4K"
+									/>
+								</>
+							)}
 						</Stack>
 					</DialogContent>
 					<DialogActions>
@@ -333,6 +591,72 @@ const OwnerScreens = () => {
 							sx={{ textTransform: 'none' }}
 						>
 							{submitting ? 'Saving...' : editingScreen ? 'Update' : 'Add'}
+						</Button>
+					</DialogActions>
+				</Dialog>
+
+				{/* Add Theatre Dialog */}
+				<Dialog
+					open={theatreDialogOpen}
+					onClose={handleCloseTheatreDialog}
+					maxWidth="sm"
+					fullWidth
+				>
+					<DialogTitle>Add New Theatre</DialogTitle>
+					<DialogContent>
+						<Stack spacing={3} sx={{ mt: 1 }}>
+							{error && (
+								<Alert severity="error" onClose={() => setError(null)}>
+									{error}
+								</Alert>
+							)}
+							<TextField
+								fullWidth
+								label="Theatre Name"
+								value={theatreFormData.name}
+								onChange={(e) => setTheatreFormData({ ...theatreFormData, name: e.target.value })}
+								required
+								disabled={submittingTheatre}
+								error={!!error && !theatreFormData.name?.trim()}
+								helperText={error && !theatreFormData.name?.trim() ? 'Theatre name cannot be empty' : ''}
+							/>
+							<TextField
+								fullWidth
+								label="city"
+								multiline
+								rows={2}
+								value={theatreFormData.address}
+								onChange={(e) => setTheatreFormData({ ...theatreFormData, address: e.target.value })}
+								disabled={submittingTheatre}
+								helperText="Theatre location address"
+							/>
+							<TextField
+								fullWidth
+								label="Phone Number"
+								type="tel"
+								value={theatreFormData.phone}
+								onChange={(e) => setTheatreFormData({ ...theatreFormData, phone: e.target.value })}
+								disabled={submittingTheatre}
+								helperText="Contact number for the theatre"
+							/>
+						</Stack>
+					</DialogContent>
+					<DialogActions>
+						<Button
+							onClick={handleCloseTheatreDialog}
+							disabled={submittingTheatre}
+							sx={{ textTransform: 'none' }}
+						>
+							Cancel
+						</Button>
+						<Button
+							onClick={handleSubmitTheatre}
+							variant="contained"
+							disabled={submittingTheatre}
+							startIcon={submittingTheatre ? <CircularProgress size={16} /> : <AddIcon />}
+							sx={{ textTransform: 'none' }}
+						>
+							{submittingTheatre ? 'Creating...' : 'Add Theatre'}
 						</Button>
 					</DialogActions>
 				</Dialog>

@@ -28,7 +28,7 @@ export const getUserProfile = async () => {
 
   // map backend fields → frontend fields
   return {
-    id: user.user_id,
+    id: user.sub,
     name: user.full_name,
     email: user.email,
     phone: user.phone_number,

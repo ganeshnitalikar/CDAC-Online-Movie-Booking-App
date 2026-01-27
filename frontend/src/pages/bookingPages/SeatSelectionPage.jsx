@@ -27,7 +27,9 @@ const SeatSelectionPage = () => {
 	const navigate = useNavigate();
 	const [show, setShow] = useState(null);
 	const [selectedSeats, setSelectedSeats] = useState([]);
+	const [selectedSeatDetails, setSelectedSeatDetails] = useState([]);
 	const [bookedSeats, setBookedSeats] = useState([]);
+	const [allSeats, setAllSeats] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [submitting, setSubmitting] = useState(false);
 	const [error, setError] = useState(null);
@@ -39,14 +41,16 @@ const SeatSelectionPage = () => {
 			try {
 				const showData = await getShowById(showId);
 				setShow(showData);
-				// Extract booked seats from show data
-				if (showData.bookedSeats) {
-					setBookedSeats(showData.bookedSeats);
-				} else if (showData.seats) {
+				
+				// Extract seats from show data
+				if (showData.seats && Array.isArray(showData.seats)) {
+					setAllSeats(showData.seats);
 					const booked = showData.seats
-						.filter((seat) => seat.status === 'BOOKED' || seat.status === 'LOCKED')
-						.map((seat) => seat.id);
+						.filter((seat) => seat.status === 'BOOKED' || seat.status === 'LOCKED' || seat.isBooked)
+						.map((seat) => seat.id || seat.seatId);
 					setBookedSeats(booked);
+				} else if (showData.bookedSeats) {
+					setBookedSeats(Array.isArray(showData.bookedSeats) ? showData.bookedSeats : []);
 				}
 			} catch (err) {
 				console.error('Error fetching show:', err);
@@ -61,9 +65,24 @@ const SeatSelectionPage = () => {
 		}
 	}, [showId]);
 
-	// Mock seat layout - 10 rows x 12 seats
-	const ROWS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
-	const SEATS_PER_ROW = 12;
+	// Get unique rows from actual seats data
+	const getSeatRows = () => {
+		if (!allSeats || allSeats.length === 0) return [];
+		const rows = [...new Set(allSeats.map(seat => seat.rowLabel || seat.row || seat.row_label))];
+		return rows.sort();
+	};
+
+	// Get seats for a specific row
+	const getSeatsForRow = (row) => {
+		if (!allSeats || allSeats.length === 0) return [];
+		return allSeats
+			.filter(seat => (seat.rowLabel || seat.row || seat.row_label) === row)
+			.sort((a, b) => {
+				const aNum = parseInt(a.seatLabel || a.seat || a.seat_label || '0');
+				const bNum = parseInt(b.seatLabel || b.seat || b.seat_label || '0');
+				return aNum - bNum;
+			});
+	};
 
 	const isSeatBooked = (seatId) => {
 		return bookedSeats.includes(seatId);
@@ -73,13 +92,32 @@ const SeatSelectionPage = () => {
 		return selectedSeats.includes(seatId);
 	};
 
-	const toggleSeat = (seatId) => {
+	const getSeatPrice = (seat) => {
+		if (!seat) return show?.price || 0;
+		// Check for seat type pricing
+		if (seat.seatType === 'PREMIUM' || seat.seat_type === 'PREMIUM') {
+			return show?.premiumPrice || show?.premium_price || show?.price || 0;
+		}
+		return show?.normalPrice || show?.normal_price || show?.price || 0;
+	};
+
+	const toggleSeat = (seat) => {
+		const seatId = seat.id || seat.seatId;
 		if (isSeatBooked(seatId)) return;
-		setSelectedSeats((prev) =>
-			prev.includes(seatId)
-				? prev.filter((id) => id !== seatId)
-				: [...prev, seatId]
-		);
+		
+		setSelectedSeats((prev) => {
+			if (prev.includes(seatId)) {
+				// Remove seat
+				setSelectedSeatDetails((prevDetails) => 
+					prevDetails.filter(s => (s.id || s.seatId) !== seatId)
+				);
+				return prev.filter((id) => id !== seatId);
+			} else {
+				// Add seat
+				setSelectedSeatDetails((prevDetails) => [...prevDetails, seat]);
+				return [...prev, seatId];
+			}
+		});
 		setError(null);
 	};
 
@@ -120,16 +158,20 @@ const SeatSelectionPage = () => {
 		}
 	};
 
-	const SeatButton = ({ seatId, row, number }) => {
+	const SeatButton = ({ seat }) => {
+		const seatId = seat.id || seat.seatId;
+		const seatNumber = seat.seatLabel || seat.seat || seat.seat_label || '';
 		const booked = isSeatBooked(seatId);
 		const selected = isSeatSelected(seatId);
+		const seatType = seat.seatType || seat.seat_type || 'NORMAL';
+		const isPremium = seatType === 'PREMIUM';
 
 		return (
 			<Button
 				variant={selected ? 'contained' : booked ? 'outlined' : 'outlined'}
-				color={selected ? 'primary' : booked ? 'error' : 'inherit'}
+				color={selected ? 'primary' : booked ? 'error' : isPremium ? 'secondary' : 'inherit'}
 				disabled={booked}
-				onClick={() => toggleSeat(seatId)}
+				onClick={() => toggleSeat(seat)}
 				sx={{
 					minWidth: 40,
 					width: 40,
@@ -141,8 +183,9 @@ const SeatSelectionPage = () => {
 						opacity: 0.5,
 					},
 				}}
+				title={isPremium ? 'Premium Seat' : 'Normal Seat'}
 			>
-				{number}
+				{seatNumber}
 			</Button>
 		);
 	};
@@ -215,42 +258,41 @@ const SeatSelectionPage = () => {
 								/>
 
 								<Stack spacing={2} sx={{ mb: 3 }}>
-									{ROWS.map((row) => (
-										<Stack
-											key={row}
-											direction="row"
-											spacing={1}
-											justifyContent="center"
-											alignItems="center"
-										>
-											<Typography
-												variant="body2"
-												sx={{ minWidth: 24, fontWeight: 600 }}
-											>
-												{row}
-											</Typography>
-											{Array.from({ length: SEATS_PER_ROW }, (_, i) => {
-												const seatNumber = i + 1;
-												const seatId = `${row}${seatNumber}`;
-												// Use actual seat ID if available, otherwise use generated ID
-												const actualSeatId = show?.seats?.find(
-													(s) => s.row === row && s.number === seatNumber
-												)?.id || seatId;
-												return (
-													<SeatButton
-														key={seatNumber}
-														seatId={actualSeatId}
-														row={row}
-														number={seatNumber}
-													/>
-												);
-											})}
-										</Stack>
-									))}
+									{allSeats.length > 0 ? (
+										getSeatRows().map((row) => {
+											const rowSeats = getSeatsForRow(row);
+											return (
+												<Stack
+													key={row}
+													direction="row"
+													spacing={1}
+													justifyContent="center"
+													alignItems="center"
+												>
+													<Typography
+														variant="body2"
+														sx={{ minWidth: 24, fontWeight: 600 }}
+													>
+														{row}
+													</Typography>
+													{rowSeats.map((seat) => (
+														<SeatButton
+															key={seat.id || seat.seatId}
+															seat={seat}
+														/>
+													))}
+												</Stack>
+											);
+										})
+									) : (
+										<Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
+											No seats available for this show
+										</Typography>
+									)}
 								</Stack>
 
 								{/* Legend */}
-								<Stack direction="row" spacing={3} justifyContent="center" sx={{ mt: 4 }}>
+								<Stack direction="row" spacing={3} justifyContent="center" flexWrap="wrap" sx={{ mt: 4, gap: 2 }}>
 									<Stack direction="row" spacing={1} alignItems="center">
 										<Box
 											sx={{
@@ -273,6 +315,18 @@ const SeatSelectionPage = () => {
 											}}
 										/>
 										<Typography variant="caption">Selected</Typography>
+									</Stack>
+									<Stack direction="row" spacing={1} alignItems="center">
+										<Box
+											sx={{
+												width: 24,
+												height: 24,
+												borderRadius: 1,
+												border: '1px solid',
+												borderColor: 'secondary.main',
+											}}
+										/>
+										<Typography variant="caption">Premium</Typography>
 									</Stack>
 									<Stack direction="row" spacing={1} alignItems="center">
 										<Box
@@ -310,9 +364,19 @@ const SeatSelectionPage = () => {
 								{show && (
 									<Stack spacing={1.5} sx={{ mb: 3 }}>
 										<Typography variant="body2" color="text.secondary">
-											Show Time: {new Date(show.showTime || show.startTime).toLocaleString()}
+											Show Time: {new Date(show.showTime || show.startTime || show.show_time).toLocaleString()}
 										</Typography>
-										{show.price && (
+										{show.normalPrice && (
+											<Typography variant="body2" color="text.secondary">
+												Normal: ₹{show.normalPrice || show.normal_price}
+											</Typography>
+										)}
+										{show.premiumPrice && (
+											<Typography variant="body2" color="text.secondary">
+												Premium: ₹{show.premiumPrice || show.premium_price}
+											</Typography>
+										)}
+										{!show.normalPrice && !show.premiumPrice && show.price && (
 											<Typography variant="body2" color="text.secondary">
 												Price per seat: ₹{show.price}
 											</Typography>
@@ -328,9 +392,17 @@ const SeatSelectionPage = () => {
 									</Typography>
 									{selectedSeats.length > 0 ? (
 										<Stack direction="row" spacing={0.5} flexWrap="wrap" gap={0.5}>
-											{selectedSeats.map((seatId) => (
-												<Chip key={seatId} label={seatId} size="small" />
-											))}
+											{selectedSeatDetails.map((seat) => {
+												const seatLabel = `${seat.rowLabel || seat.row || seat.row_label}${seat.seatLabel || seat.seat || seat.seat_label}`;
+												return (
+													<Chip 
+														key={seat.id || seat.seatId} 
+														label={seatLabel} 
+														size="small"
+														color={(seat.seatType || seat.seat_type) === 'PREMIUM' ? 'secondary' : 'default'}
+													/>
+												);
+											})}
 										</Stack>
 									) : (
 										<Typography variant="caption" color="text.secondary">
@@ -339,15 +411,33 @@ const SeatSelectionPage = () => {
 									)}
 								</Stack>
 
-								{show?.price && selectedSeats.length > 0 && (
+								{selectedSeats.length > 0 && (
 									<>
 										<Divider sx={{ my: 2 }} />
+										<Stack spacing={1.5} sx={{ mb: 2 }}>
+											{selectedSeatDetails.map((seat) => {
+												const seatLabel = `${seat.rowLabel || seat.row || seat.row_label}${seat.seatLabel || seat.seat || seat.seat_label}`;
+												const price = getSeatPrice(seat);
+												const isPremium = (seat.seatType || seat.seat_type) === 'PREMIUM';
+												return (
+													<Stack key={seat.id || seat.seatId} direction="row" justifyContent="space-between">
+														<Typography variant="body2">
+															{seatLabel} {isPremium && <Chip label="Premium" size="small" color="secondary" sx={{ ml: 0.5, height: 18 }} />}
+														</Typography>
+														<Typography variant="body2" sx={{ fontWeight: 600 }}>
+															₹{price}
+														</Typography>
+													</Stack>
+												);
+											})}
+										</Stack>
+										<Divider sx={{ my: 1 }} />
 										<Stack direction="row" justifyContent="space-between" sx={{ mb: 2 }}>
 											<Typography variant="body1" sx={{ fontWeight: 600 }}>
 												Total Amount
 											</Typography>
 											<Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.main' }}>
-												₹{show.price * selectedSeats.length}
+												₹{selectedSeatDetails.reduce((total, seat) => total + getSeatPrice(seat), 0)}
 											</Typography>
 										</Stack>
 									</>
