@@ -58,6 +58,7 @@ const UserRouter = () => {
         <Route path={ROUTES.CONTACT} element={<ContactPage />} />
          <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
          <Route path={ROUTES.RESET_PASSWORD} element={<ResetPassword />} />
+         
         <Route
           path={ROUTES.USER_DASHBOARD}
           element={

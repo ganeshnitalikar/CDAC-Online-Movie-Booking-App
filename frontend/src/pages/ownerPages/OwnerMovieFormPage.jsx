@@ -160,10 +160,10 @@ const OwnerMovieFormPage = () => {
 		const releaseDate = new Date(formData.releaseDate);
 		const today = new Date();
 		today.setHours(0, 0, 0, 0);
-		if (releaseDate > today) {
-			setError('Release date cannot be in the future');
-			return false;
-		}
+		// if (releaseDate < today) {
+		// 	setError('Release date cannot be in the Past');
+		// 	return false;
+		// }
 		if (!formData.durationMinutes || formData.durationMinutes <= 0) {
 			setError('Duration must be at least 1 minute');
 			return false;
