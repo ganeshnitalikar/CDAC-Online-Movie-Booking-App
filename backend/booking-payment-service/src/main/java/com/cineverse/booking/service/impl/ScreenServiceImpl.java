@@ -1,6 +1,7 @@
 package com.cineverse.booking.service.impl;
 
 import com.cineverse.booking.dto.request.CreateScreenRequest;
+import com.cineverse.booking.dto.request.UpdateScreenRequest;
 import com.cineverse.booking.dto.response.ScreenResponse;
 import com.cineverse.booking.entity.Screen;
 import com.cineverse.booking.entity.Theatre;
@@ -40,8 +41,22 @@ public class ScreenServiceImpl implements ScreenService {
         Screen screen = new Screen();
         screen.setName(request.getName());
         screen.setTheatre(theatre);
+        screen.setCapacity(request.getCapacity());
+        screen.setFeatures(request.getFeatures());
 
         return screenRepository.save(screen);
+    }
+    
+    @Override
+    @Transactional
+    public ScreenResponse updateScreen(
+    		Long screenId, UpdateScreenRequest request ,String role
+    		) {
+    	Screen s = screenRepository.findById(screenId).orElseThrow(()->new RuntimeException("Screen Does Not Exist"));
+    	s.setName(request.getName());
+    	s.setCapacity(request.getCapacity());
+    	s.setFeatures(request.getFeatures());
+    	return null;
     }
     
     @Override
@@ -49,14 +64,20 @@ public class ScreenServiceImpl implements ScreenService {
     public void deleteScreen(String screenId, String ownerId) {
 
         Screen screen = screenRepository
-                .findByIdAndTheatreOwnerId(Long.parseLong(screenId), ownerId)
-                .orElseThrow(() ->
-                        new RuntimeException("Screen not found or not authorized")
-                );
+            .findByIdAndTheatreOwnerId(Long.parseLong(screenId), ownerId)
+            .orElseThrow(() ->
+                new RuntimeException("Screen not found or not authorized")
+            );
+
+        if (!screen.getShows().isEmpty()) {
+            throw new IllegalStateException(
+                "Cannot delete screen. Shows are scheduled on this screen."
+            );
+        }
 
         screenRepository.delete(screen);
     }
-    
+
     
     @Override
     @Transactional()
@@ -70,6 +91,8 @@ public class ScreenServiceImpl implements ScreenService {
                         screen.getId(),
                         screen.getName(),
                         screen.getTheatre().getId(),
+                        screen.getCapacity(),
+                        screen.getFeatures(),
                         screen.getTheatre().getName()
                 ))
                 .toList();
@@ -87,10 +110,12 @@ public class ScreenServiceImpl implements ScreenService {
 
         return screens.stream()
                 .map(screen -> new ScreenResponse(
-                        screen.getId(),
-                        screen.getName(),
-                        screen.getTheatre().getId(),
-                        screen.getTheatre().getName()
+                		  screen.getId(),
+                          screen.getName(),
+                          screen.getTheatre().getId(),
+                          screen.getCapacity(),
+                          screen.getFeatures(),
+                          screen.getTheatre().getName()
                 ))
                 .toList();
     }

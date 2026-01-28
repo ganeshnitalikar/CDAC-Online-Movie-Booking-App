@@ -10,4 +10,5 @@ public interface TheatreRepository extends JpaRepository<Theatre, Long> {
 
     List<Theatre> findByOwnerId(String ownerId);
     Optional<Theatre> findByIdAndOwnerId(Long id, String ownerId);
+    void deleteById(Long id);
 }

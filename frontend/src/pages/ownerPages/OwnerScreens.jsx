@@ -57,8 +57,8 @@ const OwnerScreens = () => {
 	const [selectedTheatreId, setSelectedTheatreId] = useState(null);
 	const [formData, setFormData] = useState({
 		name: '',
-		capacity: '',
-		features: '',
+		capacity: 0,
+		features: [],
 	});
 	const [theatreFormData, setTheatreFormData] = useState({
 		name: '',
@@ -74,6 +74,7 @@ const OwnerScreens = () => {
 		try {
 			const data = await getOwnerScreens();
 			setScreens(Array.isArray(data) ? data : []);
+			console.log("Screens:", data);
 		} catch (err) {
 			console.error('Error fetching screens:', err);
 			setError(err.message || 'Failed to load screens');
@@ -108,7 +109,6 @@ const OwnerScreens = () => {
 	useEffect(() => {
 		fetchTheatres();
 		fetchScreens();
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
 	// Update selectedTheatreId from screens if not set
@@ -137,12 +137,12 @@ const OwnerScreens = () => {
 			setEditingScreen(screen);
 			setFormData({
 				name: screen.name || '',
-				capacity: screen.capacity?.toString() || '',
+				capacity: screen.capacity || 0,
 				features: screen.features || '',
 			});
 		} else {
 			setEditingScreen(null);
-			setFormData({ name: '', capacity: '', features: '' });
+			setFormData({ name: '', capacity: 0, features: [] });
 		}
 		setError(null);
 		setDialogOpen(true);
@@ -151,7 +151,7 @@ const OwnerScreens = () => {
 	const handleCloseDialog = () => {
 		setDialogOpen(false);
 		setEditingScreen(null);
-		setFormData({ name: '', capacity: '', features: '' });
+		setFormData({ name: '', capacity: 0, features: [] });
 	};
 
 	const handleSubmit = async () => {
@@ -183,6 +183,8 @@ const OwnerScreens = () => {
 			} else {
 				await createScreen({
 					name: formData.name,
+					capacity: formData.capacity,
+					features: formData.features,
 					theatreId: selectedTheatreId,
 				});
 				toast.success('Screen added successfully!');
@@ -451,11 +453,22 @@ const OwnerScreens = () => {
 												<Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
 													Features
 												</Typography>
-												<Chip
+
+												{
+												 screen.features && screen.features.length > 0 &&	screen.features.map((feature) => (
+														<Chip
+															key={feature}
+															label={feature}
+															size="small"
+															sx={{ fontWeight: 600 }}
+														/>
+													))
+}
+												{/* <Chip
 													label={screen.features}
 													size="small"
 													sx={{ fontWeight: 600 }}
-												/>
+												/> */}
 											</Box>
 										</Stack>
 									</CardContent>
@@ -519,7 +532,7 @@ const OwnerScreens = () => {
 								helperText={error && !formData.name?.trim() ? 'Screen name cannot be empty' : ''}
 							/>
 							{/* Only show capacity and features when editing */}
-							{editingScreen && (
+							
 								<>
 									<TextField
 										fullWidth
@@ -536,12 +549,12 @@ const OwnerScreens = () => {
 										fullWidth
 										label="Features"
 										value={formData.features}
-										onChange={(e) => setFormData({ ...formData, features: e.target.value })}
+										onChange={(e) => setFormData({ ...formData, features: e.target.value.split(',').map(f => f.trim()) })}
 										disabled={submitting}
 										helperText="e.g., Dolby Atmos, IMAX, 3D, 4K"
 									/>
 								</>
-							)}
+							
 						</Stack>
 					</DialogContent>
 					<DialogActions>

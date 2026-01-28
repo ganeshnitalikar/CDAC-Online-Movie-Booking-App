@@ -42,11 +42,22 @@ public class SeatServiceImpl implements SeatService {
             throw new AccessDeniedException("Not your theatre");
         }
 
+        // ❗ Seats should be created ONCE per screen
+        List<Seat> existingSeats = seatRepository.findByScreenId(screen.getId());
+        if (!existingSeats.isEmpty()) {
+            throw new IllegalStateException("Seats already exist for this screen");
+        }
+
         for (CreateSeatRequest.SeatInput input : request.getSeats()) {
+
             Seat seat = new Seat();
             seat.setRowLabel(input.getRowLabel());
-            seat.setSeatNumber(input.getSeatNumber());   
-            seat.setSeatLabel(input.getSeatLabel());
+            seat.setSeatNumber(input.getSeatNumber());
+
+            seat.setSeatLabel(
+                input.getRowLabel() + input.getSeatNumber()
+            );
+
             seat.setType(input.getType());
             seat.setScreen(screen);
 

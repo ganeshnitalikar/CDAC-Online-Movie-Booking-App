@@ -93,17 +93,8 @@ export const createShow = async (payload) => {
     throw new Error("Show data is required");
   }
 
-  const movieId = parseInt(payload.movieId, 10);
-  const screenId = parseInt(payload.screenId, 10);
-
-  if (!movieId || isNaN(movieId)) {
-    throw new Error("Valid movieId is required");
-  }
-  if (!screenId || isNaN(screenId)) {
-    throw new Error("Valid screenId is required");
-  }
-  if (!payload.startTime || !payload.endTime) {
-    throw new Error("startTime and endTime are required");
+  if (!payload.movieId || !payload.screenId || !payload.startTime || !payload.endTime) {
+    throw new Error("movieId, screenId, startTime, and endTime are required");
   }
 
   try {
@@ -112,16 +103,12 @@ export const createShow = async (payload) => {
       throw new Error("Authentication required. Please login.");
     }
 
-    const requestPayload = {
-      movieId: movieId,
-      screenId: screenId,
-      startTime: payload.startTime,
-      endTime: payload.endTime,
-    };
-
-    console.log("Creating show with payload:", requestPayload);
-
-    const response = await axiosBookingInstance.post("/booking/owner/shows", requestPayload, {
+    const response = await axiosBookingInstance.post("/booking/owner/shows", {
+      movieId: Number(payload.movieId),
+      screenId: Number(payload.screenId),
+      startTime: payload.startTime, // ISO datetime string
+      endTime: payload.endTime, // ISO datetime string
+    }, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -162,22 +149,16 @@ export const updateShow = async (payload) => {
 
   const updatePayload = {};
 
-  if (movieId !== undefined && movieId !== null && movieId !== '') {
-    const movieIdNum = parseInt(movieId, 10);
-    if (!isNaN(movieIdNum)) {
-      updatePayload.movieId = movieIdNum;
-    }
+  if (movieId !== undefined) {
+    updatePayload.movieId = Number(movieId);
   }
-  if (screenId !== undefined && screenId !== null && screenId !== '') {
-    const screenIdNum = parseInt(screenId, 10);
-    if (!isNaN(screenIdNum)) {
-      updatePayload.screenId = screenIdNum;
-    }
+  if (screenId !== undefined) {
+    updatePayload.screenId = Number(screenId);
   }
-  if (startTime !== undefined && startTime !== null && startTime !== '') {
+  if (startTime !== undefined) {
     updatePayload.startTime = startTime;
   }
-  if (endTime !== undefined && endTime !== null && endTime !== '') {
+  if (endTime !== undefined) {
     updatePayload.endTime = endTime;
   }
 
@@ -257,3 +238,55 @@ export const deleteShow = async (showId) => {
     throw new Error("Failed to delete show. Please try again.");
   }
 };
+
+// import axiosBookingInstance from "../config/axiosBookingInstance";
+
+// export const getOwnerShows = async () => {
+//   const token = localStorage.getItem("authToken");
+//   const res = await axiosBookingInstance.get("/booking/owner/shows", {
+//     headers: { Authorization: `Bearer ${token}` },
+//   });
+//   return res.data || [];
+// };
+
+// export const createShow = async (payload) => {
+//   const token = localStorage.getItem("authToken");
+//   const res = await axiosBookingInstance.post(
+//     "/booking/owner/shows",
+//     {
+//       movieId: payload.movieId,      // STRING
+//       screenId: Number(payload.screenId),
+//       startTime: payload.startTime,
+//       endTime: payload.endTime,
+//     },
+//     { headers: { Authorization: `Bearer ${token}` } }
+//   );
+//   return res.data;
+// };
+
+// export const updateShow = async (payload) => {
+//   const token = localStorage.getItem("authToken");
+//   const { showId, movieId, screenId, startTime, endTime } = payload;
+
+//   const body = {};
+//   if (movieId) body.movieId = movieId;
+//   if (screenId) body.screenId = Number(screenId);
+//   if (startTime) body.startTime = startTime;
+//   if (endTime) body.endTime = endTime;
+
+//   const res = await axiosBookingInstance.put(
+//     `/booking/owner/shows/${showId}`,
+//     body,
+//     { headers: { Authorization: `Bearer ${token}` } }
+//   );
+//   return res.data;
+// };
+
+// export const deleteShow = async (showId) => {
+//   const token = localStorage.getItem("authToken");
+//   await axiosBookingInstance.delete(`/booking/owner/shows/${showId}`, {
+//     headers: { Authorization: `Bearer ${token}` },
+//   });
+// };
+
+

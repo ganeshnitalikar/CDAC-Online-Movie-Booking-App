@@ -51,6 +51,36 @@ public class ShowServiceImpl implements ShowService {
                 ))
                 .toList();
     }
+    @Override
+    @Transactional
+    public List<ShowResponse> getShowsByMovie(String movieId) {
+
+        List<Show> shows = showRepository
+                .findByMovieIdAndStartTimeAfter(
+                        movieId,
+                        LocalDateTime.now()
+                );
+
+        if (shows.isEmpty()) {
+            return List.of(); 
+        }
+
+        return shows.stream()
+                .map(show -> new ShowResponse(
+                        show.getId(),
+                        show.getMovieId(),
+
+                        show.getScreen().getId(),
+                        show.getScreen().getName(),
+
+                        show.getScreen().getTheatre().getId(),
+                        show.getScreen().getTheatre().getName(),
+
+                        show.getStartTime(),
+                        show.getEndTime()
+                ))
+                .toList();
+    }
 
     
     @Override

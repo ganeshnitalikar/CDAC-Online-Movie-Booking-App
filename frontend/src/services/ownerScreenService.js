@@ -82,7 +82,7 @@ export const getOwnerScreenById = async (screenId) => {
  * @param {Object} payload - Screen data
  * @param {string} payload.name - Screen name
  * @param {number} payload.capacity - Screen capacity (number of seats)
- * @param {string} payload.features - Screen features (comma-separated or string)
+ * @param {Array<string>} payload.features - Screen features (comma-separated or string)
  * @returns {Promise<Object>} Created screen object
  */
 export const createScreen = async (payload) => {
@@ -99,12 +99,14 @@ export const createScreen = async (payload) => {
     if (!token) {
       throw new Error("Authentication required. Please login.");
     }
-
+    console.log(typeof(payload.features));
     const response = await axiosBookingInstance.post(
       "/booking/owner/screens",
       {
         name: payload.name.trim(),
         theatreId: payload.theatreId,
+        capacity: payload.capacity,
+        features: payload.features,
       },
       {
         headers: {

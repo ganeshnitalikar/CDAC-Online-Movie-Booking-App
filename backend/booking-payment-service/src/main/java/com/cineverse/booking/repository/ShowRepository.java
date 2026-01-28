@@ -34,5 +34,8 @@ public interface ShowRepository extends JpaRepository<Show, Long> {
     }
     
     List<Show> findByScreenTheatreOwnerId(String ownerId);
-
+    List<Show> findByMovieIdAndStartTimeAfter(
+            String movieId,
+            LocalDateTime time
+    );
 }
