@@ -1,5 +1,8 @@
 package com.cineverse.booking.entity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,4 +25,12 @@ public class Screen {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "theatre_id", nullable = false)
     private Theatre theatre;
+    
+    @OneToMany(
+    	    mappedBy = "screen",
+    	    cascade = CascadeType.ALL,
+    	    orphanRemoval = true
+    	)
+    	private List<Seat> seats = new ArrayList<>();
+
 }

@@ -43,6 +43,7 @@ import {
 	createScreenForTheatre,
 } from '../../services/ownerScreenService';
 import { toast } from 'react-toastify';
+import OwnerAddSeatsModal from './OwnerAddSeatsModal';
 
 const OwnerScreens = () => {
 	const [screens, setScreens] = useState([]);
@@ -51,12 +52,11 @@ const OwnerScreens = () => {
 	const [error, setError] = useState(null);
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [theatreDialogOpen, setTheatreDialogOpen] = useState(false);
+	const [seatsDialogOpen, setSeatsDialogOpen] = useState(false);
 	const [editingScreen, setEditingScreen] = useState(null);
 	const [selectedTheatreId, setSelectedTheatreId] = useState(null);
 	const [formData, setFormData] = useState({
 		name: '',
-		normalPrice: '',
-		premiumPrice: '',
 		capacity: '',
 		features: '',
 	});
@@ -137,14 +137,12 @@ const OwnerScreens = () => {
 			setEditingScreen(screen);
 			setFormData({
 				name: screen.name || '',
-				normalPrice: screen.normalPrice?.toString() || screen.normal_price?.toString() || '',
-				premiumPrice: screen.premiumPrice?.toString() || screen.premium_price?.toString() || '',
 				capacity: screen.capacity?.toString() || '',
 				features: screen.features || '',
 			});
 		} else {
 			setEditingScreen(null);
-			setFormData({ name: '', normalPrice: '', premiumPrice: '', capacity: '', features: '' });
+			setFormData({ name: '', capacity: '', features: '' });
 		}
 		setError(null);
 		setDialogOpen(true);
@@ -153,22 +151,18 @@ const OwnerScreens = () => {
 	const handleCloseDialog = () => {
 		setDialogOpen(false);
 		setEditingScreen(null);
-		setFormData({ name: '', normalPrice: '', premiumPrice: '', capacity: '', features: '' });
+		setFormData({ name: '', capacity: '', features: '' });
 	};
 
 	const handleSubmit = async () => {
-		// For adding new screen, validate name and prices
+		// For adding new screen, validate name and theatre selection
 		if (!editingScreen) {
 			if (!formData.name?.trim()) {
 				setError('Screen name is required');
 				return;
 			}
-			if (!formData.normalPrice || parseFloat(formData.normalPrice) <= 0) {
-				setError('Normal price must be greater than 0');
-				return;
-			}
-			if (!formData.premiumPrice || parseFloat(formData.premiumPrice) <= 0) {
-				setError('Premium price must be greater than 0');
+			if (!selectedTheatreId) {
+				setError('Please select a theatre first.');
 				return;
 			}
 		}
@@ -187,14 +181,9 @@ const OwnerScreens = () => {
 				await updateScreen(editingScreen.id, formData);
 				toast.success('Screen updated successfully!');
 			} else {
-				// Use new API endpoint for creating screen with theatreId
-				if (!selectedTheatreId) {
-					throw new Error('Please select a theatre first.');
-				}
-				await createScreenForTheatre(selectedTheatreId, {
+				await createScreen({
 					name: formData.name,
-					normalPrice: formData.normalPrice,
-					premiumPrice: formData.premiumPrice,
+					theatreId: selectedTheatreId,
 				});
 				toast.success('Screen added successfully!');
 			}
@@ -225,6 +214,18 @@ const OwnerScreens = () => {
 			console.error('Error deleting screen:', err);
 			setError(err.message || 'Failed to delete screen');
 		}
+	};
+
+	const handleOpenSeatsDialog = (screen = null) => {
+		if (screen?.id) {
+			setSelectedTheatreId((current) => current || screen.theatreId || screen.theatre?.id || current);
+		}
+		setError(null);
+		setSeatsDialogOpen(true);
+	};
+
+	const handleCloseSeatsDialog = () => {
+		setSeatsDialogOpen(false);
 	};
 
 	const handleOpenTheatreDialog = () => {
@@ -467,6 +468,13 @@ const OwnerScreens = () => {
 										>
 											Edit
 										</Button>
+									<Button
+										size="small"
+										onClick={() => handleOpenSeatsDialog(screen)}
+										sx={{ textTransform: 'none' }}
+									>
+										Add Seats
+									</Button>
 										<Button
 											size="small"
 											color="error"
@@ -510,43 +518,6 @@ const OwnerScreens = () => {
 								error={!!error && !formData.name?.trim()}
 								helperText={error && !formData.name?.trim() ? 'Screen name cannot be empty' : ''}
 							/>
-							{/* Show price fields when adding new screen */}
-							{!editingScreen && (
-								<>
-									<TextField
-										fullWidth
-										label="Normal Seat Price"
-										type="number"
-										value={formData.normalPrice}
-										onChange={(e) => setFormData({ ...formData, normalPrice: e.target.value })}
-										required
-										inputProps={{ min: 0.01, step: 0.01 }}
-										disabled={submitting}
-										error={!!error && (!formData.normalPrice || parseFloat(formData.normalPrice) <= 0)}
-										helperText={
-											error && (!formData.normalPrice || parseFloat(formData.normalPrice) <= 0)
-												? 'Normal price must be greater than 0'
-												: 'Price for normal seats (₹)'
-										}
-									/>
-									<TextField
-										fullWidth
-										label="Premium Seat Price"
-										type="number"
-										value={formData.premiumPrice}
-										onChange={(e) => setFormData({ ...formData, premiumPrice: e.target.value })}
-										required
-										inputProps={{ min: 0.01, step: 0.01 }}
-										disabled={submitting}
-										error={!!error && (!formData.premiumPrice || parseFloat(formData.premiumPrice) <= 0)}
-										helperText={
-											error && (!formData.premiumPrice || parseFloat(formData.premiumPrice) <= 0)
-												? 'Premium price must be greater than 0'
-												: 'Price for premium seats (₹)'
-										}
-									/>
-								</>
-							)}
 							{/* Only show capacity and features when editing */}
 							{editingScreen && (
 								<>
@@ -592,6 +563,13 @@ const OwnerScreens = () => {
 						</Button>
 					</DialogActions>
 				</Dialog>
+
+				<OwnerAddSeatsModal
+					open={seatsDialogOpen}
+					onClose={handleCloseSeatsDialog}
+					screens={filteredScreens}
+					onCreated={fetchScreens}
+				/>
 
 				{/* Add Theatre Dialog */}
 				<Dialog

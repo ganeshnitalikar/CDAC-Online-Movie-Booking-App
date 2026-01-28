@@ -31,9 +31,11 @@ public class ScreenServiceImpl implements ScreenService {
         Theatre theatre = theatreRepository.findById(request.getTheatreId())
                 .orElseThrow(() -> new RuntimeException("Theatre not found"));
 
-        if (role.equals("c") && !theatre.getOwnerId().equals(requesterId)) {
+        if (role.equals("THEATER_OWNER") && !theatre.getOwnerId().equals(requesterId)) {
             throw new AccessDeniedException("You do not own this theatre");
         }
+        
+
 
         Screen screen = new Screen();
         screen.setName(request.getName());

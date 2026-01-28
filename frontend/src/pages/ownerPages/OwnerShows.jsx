@@ -41,12 +41,10 @@ import {
 	deleteShow,
 } from '../../services/ownerShowService';
 import { getOwnerScreens } from '../../services/ownerScreenService';
-import { getOwnerMovies } from '../../services/movie.owner.service';
 
 const OwnerShows = () => {
 	const [shows, setShows] = useState([]);
 	const [screens, setScreens] = useState([]);
-	const [movies, setMovies] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
 	const [dialogOpen, setDialogOpen] = useState(false);
@@ -54,8 +52,8 @@ const OwnerShows = () => {
 	const [formData, setFormData] = useState({
 		movieId: '',
 		screenId: '',
-		showTime: '',
-		price: '',
+		startTime: '',
+		endTime: '',
 	});
 	const [submitting, setSubmitting] = useState(false);
 
@@ -63,14 +61,12 @@ const OwnerShows = () => {
 		setLoading(true);
 		setError(null);
 		try {
-			const [showsData, screensData, moviesData] = await Promise.all([
+			const [showsData, screensData] = await Promise.all([
 				getOwnerShows(),
 				getOwnerScreens(),
-				getOwnerMovies(),
 			]);
 			setShows(Array.isArray(showsData) ? showsData : []);
 			setScreens(Array.isArray(screensData) ? screensData : []);
-			setMovies(Array.isArray(moviesData) ? moviesData : []);
 		} catch (err) {
 			console.error('Error fetching data:', err);
 			setError(err.message || 'Failed to load data');
@@ -87,24 +83,21 @@ const OwnerShows = () => {
 	const handleOpenDialog = (show = null) => {
 		if (show) {
 			setEditingShow(show);
-			// Format showTime for datetime-local input
-			const showTime = show.showTime || show.startTime;
-			const formattedTime = showTime
-				? new Date(showTime).toISOString().slice(0, 16)
-				: '';
+			const formattedStart = show.startTime ? new Date(show.startTime).toISOString().slice(0, 16) : '';
+			const formattedEnd = show.endTime ? new Date(show.endTime).toISOString().slice(0, 16) : '';
 			setFormData({
 				movieId: show.movieId?.toString() || show.movie?.id?.toString() || '',
 				screenId: show.screenId?.toString() || show.screen?.id?.toString() || '',
-				showTime: formattedTime,
-				price: show.price?.toString() || '',
+				startTime: formattedStart,
+				endTime: formattedEnd,
 			});
 		} else {
 			setEditingShow(null);
 			setFormData({
 				movieId: '',
 				screenId: '',
-				showTime: '',
-				price: '',
+				startTime: '',
+				endTime: '',
 			});
 		}
 		setError(null);
@@ -117,19 +110,14 @@ const OwnerShows = () => {
 		setFormData({
 			movieId: '',
 			screenId: '',
-			showTime: '',
-			price: '',
+			startTime: '',
+			endTime: '',
 		});
 	};
 
 	const handleSubmit = async () => {
-		if (!formData.movieId || !formData.screenId || !formData.showTime || !formData.price) {
+		if (!formData.movieId || !formData.screenId || !formData.startTime || !formData.endTime) {
 			setError('All fields are required');
-			return;
-		}
-
-		if (parseFloat(formData.price) <= 0) {
-			setError('Price must be greater than 0');
 			return;
 		}
 
@@ -137,18 +125,21 @@ const OwnerShows = () => {
 		setError(null);
 
 		try {
-			// Convert showTime to ISO string
-			const showTimeISO = new Date(formData.showTime).toISOString();
+			const startTimeISO = new Date(formData.startTime).toISOString();
+			const endTimeISO = new Date(formData.endTime).toISOString();
 			
 			const payload = {
 				movieId: formData.movieId,
 				screenId: formData.screenId,
-				showTime: showTimeISO,
-				price: parseFloat(formData.price),
+				startTime: startTimeISO,
+				endTime: endTimeISO,
 			};
 
 			if (editingShow) {
-				await updateShow(editingShow.id, payload);
+				await updateShow({
+					showId: editingShow.id,
+					...payload,
+				});
 			} else {
 				await createShow(payload);
 			}
@@ -196,8 +187,7 @@ const OwnerShows = () => {
 	};
 
 	const getMovieName = (movieId) => {
-		const movie = movies.find((m) => m.id === Number(movieId) || m.id === movieId);
-		return movie?.title || 'Unknown Movie';
+		return movieId ? `Movie ${movieId}` : 'Unknown Movie';
 	};
 
 	const getScreenName = (screenId) => {
@@ -232,7 +222,7 @@ const OwnerShows = () => {
 							variant="contained"
 							startIcon={<AddIcon />}
 							onClick={() => handleOpenDialog()}
-							disabled={screens.length === 0 || movies.length === 0}
+							disabled={screens.length === 0}
 							sx={{ textTransform: 'none' }}
 						>
 							Schedule Show
@@ -248,13 +238,9 @@ const OwnerShows = () => {
 				)}
 
 				{/* Info Alert */}
-				{(screens.length === 0 || movies.length === 0) && (
+				{screens.length === 0 && (
 					<Alert severity="info" sx={{ mb: 3 }}>
-						{screens.length === 0 && movies.length === 0
-							? 'Please add screens and movies before scheduling shows.'
-							: screens.length === 0
-							? 'Please add screens before scheduling shows.'
-							: 'Please add movies before scheduling shows.'}
+						Please add screens before scheduling shows.
 					</Alert>
 				)}
 
@@ -289,7 +275,7 @@ const OwnerShows = () => {
 							variant="contained"
 							startIcon={<AddIcon />}
 							onClick={() => handleOpenDialog()}
-							disabled={screens.length === 0 || movies.length === 0}
+							disabled={screens.length === 0}
 							sx={{ textTransform: 'none' }}
 						>
 							Schedule Your First Show
@@ -325,18 +311,18 @@ const OwnerShows = () => {
 										<Stack spacing={1.5}>
 											<Box>
 												<Typography variant="body2" color="text.secondary">
-													Show Time
+													Start Time
 												</Typography>
 												<Typography variant="body1" sx={{ fontWeight: 600 }}>
-													{formatShowTime(show.showTime || show.startTime)}
+													{formatShowTime(show.startTime)}
 												</Typography>
 											</Box>
 											<Box>
 												<Typography variant="body2" color="text.secondary">
-													Price
+													End Time
 												</Typography>
-												<Typography variant="h6" sx={{ fontWeight: 600, color: 'primary.main' }}>
-													₹{show.price}
+												<Typography variant="body1" sx={{ fontWeight: 600 }}>
+													{formatShowTime(show.endTime)}
 												</Typography>
 											</Box>
 										</Stack>
@@ -378,21 +364,14 @@ const OwnerShows = () => {
 					</DialogTitle>
 					<DialogContent>
 						<Stack spacing={3} sx={{ mt: 1 }}>
-							<FormControl fullWidth required>
-								<InputLabel>Movie</InputLabel>
-								<Select
-									value={formData.movieId}
-									onChange={(e) => setFormData({ ...formData, movieId: e.target.value })}
-									label="Movie"
-									disabled={submitting}
-								>
-									{movies.map((movie) => (
-										<MenuItem key={movie.id} value={movie.id.toString()}>
-											{movie.title}
-										</MenuItem>
-									))}
-								</Select>
-							</FormControl>
+							<TextField
+								fullWidth
+								label="Movie ID"
+								value={formData.movieId}
+								onChange={(e) => setFormData({ ...formData, movieId: e.target.value })}
+								required
+								disabled={submitting}
+							/>
 
 							<FormControl fullWidth required>
 								<InputLabel>Screen</InputLabel>
@@ -412,10 +391,10 @@ const OwnerShows = () => {
 
 							<TextField
 								fullWidth
-								label="Show Time"
+								label="Start Time"
 								type="datetime-local"
-								value={formData.showTime}
-								onChange={(e) => setFormData({ ...formData, showTime: e.target.value })}
+								value={formData.startTime}
+								onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
 								InputLabelProps={{
 									shrink: true,
 								}}
@@ -425,14 +404,15 @@ const OwnerShows = () => {
 
 							<TextField
 								fullWidth
-								label="Ticket Price (₹)"
-								type="number"
-								value={formData.price}
-								onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+								label="End Time"
+								type="datetime-local"
+								value={formData.endTime}
+								onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+								InputLabelProps={{
+									shrink: true,
+								}}
 								required
-								inputProps={{ min: 1, step: 0.01 }}
 								disabled={submitting}
-								helperText="Price per ticket in rupees"
 							/>
 						</Stack>
 					</DialogContent>

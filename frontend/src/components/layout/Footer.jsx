@@ -34,7 +34,7 @@ const Footer = () => {
     { icon: <TwitterIcon />, label: 'Twitter', url: 'https://twitter.com' },
     { icon: <InstagramIcon />, label: 'Instagram', url: 'https://instagram.com/' },
     { icon: <YouTubeIcon />, label: 'YouTube', url: 'https://www.youtube.com/' },
-    { icon: <LinkedInIcon />, label: 'LinkedIn', url: 'https://www.linkedin.com/in/vighnesh-devkate-b2119822a/' },
+    { icon: <LinkedInIcon />, label: 'LinkedIn', url: 'https://www.linkedin.com' },
   ];
 
   const contactInfo = [
@@ -43,11 +43,6 @@ const Footer = () => {
       value: 'cineversehub1@gmail.com',
       action: 'mailto:cineversehub1@gmail.com',
     },
-    // {
-    //   icon: <PhoneIcon />,
-    //   value: '+1 (555) 123-4567',
-    //   action: 'tel:+15551234567',
-    // },
     {
       icon: <LocationIcon />,
       value: 'Hinjewadi Pune, 411057',
@@ -186,15 +181,6 @@ const Footer = () => {
                 justifyContent: { xs: 'flex-start', md: 'flex-end' },
               }}
             >
-              {/* <Link component="button" variant="body2" onClick={() => handleNavigation('/terms')} sx={{ color: 'text.secondary', '&:hover': { color: 'primary.main', textDecoration: 'underline' } }}>
-                Terms of Service
-              </Link>
-              <Link component="button" variant="body2" onClick={() => handleNavigation('/privacy')} sx={{ color: 'text.secondary', '&:hover': { color: 'primary.main', textDecoration: 'underline' } }}>
-                Privacy Policy
-              </Link>
-              <Link component="button" variant="body2" onClick={() => handleNavigation('/cookies')} sx={{ color: 'text.secondary', '&:hover': { color: 'primary.main', textDecoration: 'underline' } }}>
-                Cookie Policy
-              </Link> */}
             </Box>
           </Grid>
         </Grid>

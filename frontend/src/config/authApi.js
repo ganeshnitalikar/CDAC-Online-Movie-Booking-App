@@ -59,11 +59,4 @@ export const resetPassword = async (data) => {
 };
 
 
-// // LOGOUT
-// export const logoutApi = async () => {
-//   const res = await axiosInstance.post(API_CONFIG.ENDPOINTS.AUTH.LOGOUT, {}, {
-//     withCredentials: true,
-//   });
-//   return res.data;
-// };
 
