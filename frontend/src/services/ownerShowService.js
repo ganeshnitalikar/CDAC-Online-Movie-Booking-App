@@ -93,8 +93,17 @@ export const createShow = async (payload) => {
     throw new Error("Show data is required");
   }
 
-  if (!payload.movieId || !payload.screenId || !payload.startTime || !payload.endTime) {
-    throw new Error("movieId, screenId, startTime, and endTime are required");
+  const movieId = parseInt(payload.movieId, 10);
+  const screenId = parseInt(payload.screenId, 10);
+
+  if (!movieId || isNaN(movieId)) {
+    throw new Error("Valid movieId is required");
+  }
+  if (!screenId || isNaN(screenId)) {
+    throw new Error("Valid screenId is required");
+  }
+  if (!payload.startTime || !payload.endTime) {
+    throw new Error("startTime and endTime are required");
   }
 
   try {
@@ -103,12 +112,16 @@ export const createShow = async (payload) => {
       throw new Error("Authentication required. Please login.");
     }
 
-    const response = await axiosBookingInstance.post("/booking/owner/shows", {
-      movieId: Number(payload.movieId),
-      screenId: Number(payload.screenId),
-      startTime: payload.startTime, // ISO datetime string
-      endTime: payload.endTime, // ISO datetime string
-    }, {
+    const requestPayload = {
+      movieId: movieId,
+      screenId: screenId,
+      startTime: payload.startTime,
+      endTime: payload.endTime,
+    };
+
+    console.log("Creating show with payload:", requestPayload);
+
+    const response = await axiosBookingInstance.post("/booking/owner/shows", requestPayload, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -149,16 +162,22 @@ export const updateShow = async (payload) => {
 
   const updatePayload = {};
 
-  if (movieId !== undefined) {
-    updatePayload.movieId = Number(movieId);
+  if (movieId !== undefined && movieId !== null && movieId !== '') {
+    const movieIdNum = parseInt(movieId, 10);
+    if (!isNaN(movieIdNum)) {
+      updatePayload.movieId = movieIdNum;
+    }
   }
-  if (screenId !== undefined) {
-    updatePayload.screenId = Number(screenId);
+  if (screenId !== undefined && screenId !== null && screenId !== '') {
+    const screenIdNum = parseInt(screenId, 10);
+    if (!isNaN(screenIdNum)) {
+      updatePayload.screenId = screenIdNum;
+    }
   }
-  if (startTime !== undefined) {
+  if (startTime !== undefined && startTime !== null && startTime !== '') {
     updatePayload.startTime = startTime;
   }
-  if (endTime !== undefined) {
+  if (endTime !== undefined && endTime !== null && endTime !== '') {
     updatePayload.endTime = endTime;
   }
 

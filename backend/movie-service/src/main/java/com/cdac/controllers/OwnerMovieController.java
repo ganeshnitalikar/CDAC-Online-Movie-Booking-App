@@ -2,6 +2,8 @@ package com.cdac.controllers;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +19,15 @@ import com.cdac.service.MovieService;
 public class OwnerMovieController {
 
     private final MovieService movieService;
+    
+    @GetMapping
+    public ResponseEntity<?> getMovies(
+    		@Valid @RequestBody CreateMovieRequest request
+    		) {
+    	return ResponseEntity.ok( 
+    			 movieService.getPublicMovies());
+    			
+    }
 
     @PostMapping
     public MovieResponse createMovie(
