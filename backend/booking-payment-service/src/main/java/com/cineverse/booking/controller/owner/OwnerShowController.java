@@ -16,6 +16,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 
 import java.util.List;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -87,5 +88,17 @@ public class OwnerShowController {
                 jwt.getSubject(),
                 jwt.getClaim("role") 
         );
+    }
+    
+    @DeleteMapping("/shows/{showId}")
+    public ResponseEntity<?> deleteShow(
+    		@PathVariable Long showId,
+    		@AuthenticationPrincipal Jwt jwt
+    		){
+    	showService.deleteShow(
+    			showId,
+    			jwt.getSubject()
+    			);
+    	return ResponseEntity.ok("Deleted");
     }
 }

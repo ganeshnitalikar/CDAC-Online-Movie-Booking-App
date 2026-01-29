@@ -29,7 +29,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
 
                 // Razorpay webhook (signature protected)
-                .requestMatchers("/webhooks/**").permitAll()
+                .requestMatchers("/booking/webhooks/**").permitAll()
 
                 // ADMIN
                 .requestMatchers("/admin/**").hasRole("ADMIN")
@@ -46,7 +46,7 @@ public class SecurityConfig {
                 	    "/shows/**",
                 	    "/movies/**",
                 	    "/public/**",
-                	    "/swagger-ui"
+                	    "/swagger-ui/**"
                 	).permitAll()
 
 

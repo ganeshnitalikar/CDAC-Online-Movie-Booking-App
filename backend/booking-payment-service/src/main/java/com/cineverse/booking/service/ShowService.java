@@ -19,4 +19,6 @@ public interface ShowService {
     List<ShowResponse> getShowsByScreen(Long screenId);
     List<OwnerShowResponse> getShowsByOwner(String ownerId);
     List<ShowResponse> getShowsByMovie(String movieId);
+
+	void deleteShow(Long showId, String ownerId);
 }

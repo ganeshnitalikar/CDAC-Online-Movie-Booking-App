@@ -25,10 +25,10 @@ export const initiateBooking = async (showId, seatIds) => {
     if (!token) {
       throw new Error("Please login to book tickets");
     }
-
-    const response = await axiosBookingInstance.post("/user/bookings/initiate", {
-      showId,
-      seatIds,
+    console.log(showId,seatIds);
+    const response = await axiosBookingInstance.post("booking/user/bookings/initiate", {
+      showId: Number(showId),
+        seatIds: seatIds.map(Number),
     });
     return response.data;
   } catch (error) {
@@ -71,7 +71,7 @@ export const getTicket = async (bookingId) => {
       throw new Error("Please login to view ticket");
     }
 
-    const response = await axiosBookingInstance.get(`/user/bookings/${bookingId}/ticket`);
+    const response = await axiosBookingInstance.get(`booking/user/bookings/${bookingId}/ticket`);
     return response.data;
   } catch (error) {
     console.error("Error fetching ticket:", error);

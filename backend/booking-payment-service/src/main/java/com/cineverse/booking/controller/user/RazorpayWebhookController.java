@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.codec.binary.Hex;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,20 +30,32 @@ public class RazorpayWebhookController {
             HttpServletRequest request,
             @RequestHeader("X-Razorpay-Signature") String signature
     ) throws Exception {
-
+    	 System.out.println("🔥 RAZORPAY WEBHOOK HIT");
         String payload = readPayload(request);
 
         verifySignature(payload, signature);
 
-        // extract fields (minimal parsing)
-        String orderId = payload.split("\"order_id\":\"")[1].split("\"")[0];
-        String paymentId = payload.split("\"id\":\"")[1].split("\"")[0];
+        JSONObject json = new JSONObject(payload);
 
-        paymentService.handlePaymentSuccess(orderId, paymentId, signature);
+        JSONObject paymentEntity =
+                json.getJSONObject("payload")
+                    .getJSONObject("payment")
+                    .getJSONObject("entity");
+
+        String razorpayOrderId = paymentEntity.getString("order_id");
+        String razorpayPaymentId = paymentEntity.getString("id");
+        
+        System.out.println("OrderId = " + razorpayOrderId);
+        System.out.println("PaymentId = " + razorpayPaymentId);
+
+        paymentService.handlePaymentSuccess(
+                razorpayOrderId,
+                razorpayPaymentId,
+                signature
+        );
 
         return ResponseEntity.ok("OK");
     }
-
     private void verifySignature(String payload, String actualSignature) throws Exception {
 
         Mac sha256Hmac = Mac.getInstance("HmacSHA256");

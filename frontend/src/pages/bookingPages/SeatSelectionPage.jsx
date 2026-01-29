@@ -95,9 +95,9 @@ const SeatSelectionPage = () => {
 		if (!seat) return show?.price || 0;
 		// Check for seat type pricing
 		if (seat.seatType === 'PREMIUM' || seat.seat_type === 'PREMIUM') {
-			return show?.premiumPrice || show?.premium_price || show?.price || 0;
+			return show?.premiumPrice || show?.premium_price || show?.price || 300;
 		}
-		return show?.normalPrice || show?.normal_price || show?.price || 0;
+		return show?.normalPrice || show?.normal_price || show?.price || 200;
 	};
 
 	const toggleSeat = (seat) => {
@@ -130,8 +130,12 @@ const SeatSelectionPage = () => {
 		setError(null);
 
 		try {
-			const bookingData = await initiateBooking(Number(showId), selectedSeats);
-			navigate(`/booking/${bookingData.bookingId}/confirm`);
+			// Ensure seatIds is always an array
+			const seatIdsArray = Array.isArray(selectedSeats) ? selectedSeats : [selectedSeats];
+			const bookingData = await initiateBooking(Number(showId), seatIdsArray);
+			// After initiating booking, navigate to payment page
+			// Do NOT go to confirmation or ticket page yet
+			navigate(`/booking/${bookingData.bookingId}/payment`);
 		} catch (err) {
 			console.error('Error initiating booking:', err);
 			if (err.message.includes('409') || err.message.includes('already locked')) {
