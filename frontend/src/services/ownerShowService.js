@@ -26,10 +26,6 @@ export const getOwnerShows = async (filters = {}) => {
         Authorization: `Bearer ${token}`,
       },
       params: filters,
-    },{
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
     });
     return response.data || [];
   } catch (error) {
@@ -88,8 +84,8 @@ export const getOwnerShowById = async (showId) => {
  * @param {Object} payload - Show data
  * @param {string|number} payload.movieId - Movie ID
  * @param {string|number} payload.screenId - Screen ID
- * @param {string} payload.showTime - Show time (ISO datetime string)
- * @param {number} payload.price - Ticket price
+ * @param {string} payload.startTime - Start time (ISO datetime string)
+ * @param {string} payload.endTime - End time (ISO datetime string)
  * @returns {Promise<Object>} Created show object
  */
 export const createShow = async (payload) => {
@@ -97,8 +93,8 @@ export const createShow = async (payload) => {
     throw new Error("Show data is required");
   }
 
-  if (!payload.movieId || !payload.screenId || !payload.showTime || !payload.price) {
-    throw new Error("Movie ID, Screen ID, Show Time, and Price are required");
+  if (!payload.movieId || !payload.screenId || !payload.startTime || !payload.endTime) {
+    throw new Error("movieId, screenId, startTime, and endTime are required");
   }
 
   try {
@@ -107,11 +103,11 @@ export const createShow = async (payload) => {
       throw new Error("Authentication required. Please login.");
     }
 
-    const response = await axiosBookingInstance.post("booking/owner/shows", {
+    const response = await axiosBookingInstance.post("/booking/owner/shows", {
       movieId: Number(payload.movieId),
       screenId: Number(payload.screenId),
-      showTime: payload.showTime, // ISO datetime string
-      price: Number(payload.price),
+      startTime: payload.startTime, // ISO datetime string
+      endTime: payload.endTime, // ISO datetime string
     }, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -137,16 +133,36 @@ export const createShow = async (payload) => {
 /**
  * Update an existing show
  * PUT /owner/shows/{showId}
- * @param {string|number} showId - Show ID to update
- * @param {Object} payload - Updated show data (partial update supported)
+ * @param {Object} payload - Updated show data
+ * @param {string|number} payload.showId - Show ID to update
+ * @param {string|number} [payload.movieId] - Movie ID
+ * @param {string} [payload.startTime] - Start time (ISO datetime string)
+ * @param {string} [payload.endTime] - End time (ISO datetime string)
  * @returns {Promise<Object>} Updated show object
  */
-export const updateShow = async (showId, payload) => {
-  if (!showId) {
-    throw new Error("Show ID is required");
+export const updateShow = async (payload) => {
+  if (!payload || !payload.showId) {
+    throw new Error("showId is required for updating a show");
   }
 
-  if (!payload || Object.keys(payload).length === 0) {
+  const { showId, movieId, screenId, startTime, endTime } = payload;
+
+  const updatePayload = {};
+
+  if (movieId !== undefined) {
+    updatePayload.movieId = Number(movieId);
+  }
+  if (screenId !== undefined) {
+    updatePayload.screenId = Number(screenId);
+  }
+  if (startTime !== undefined) {
+    updatePayload.startTime = startTime;
+  }
+  if (endTime !== undefined) {
+    updatePayload.endTime = endTime;
+  }
+
+  if (Object.keys(updatePayload).length === 0) {
     throw new Error("Update data is required");
   }
 
@@ -157,23 +173,9 @@ export const updateShow = async (showId, payload) => {
     }
 
     const showIdStr = String(showId);
-    const updatePayload = {};
-    
-    if (payload.movieId !== undefined) {
-      updatePayload.movieId = Number(payload.movieId);
-    }
-    if (payload.screenId !== undefined) {
-      updatePayload.screenId = Number(payload.screenId);
-    }
-    if (payload.showTime !== undefined) {
-      updatePayload.showTime = payload.showTime;
-    }
-    if (payload.price !== undefined) {
-      updatePayload.price = Number(payload.price);
-    }
 
     const response = await axiosBookingInstance.put(
-      `booking/owner/shows/${showIdStr}`,
+      `/booking/owner/shows/${showIdStr}`,
       updatePayload,
       {
         headers: {
@@ -236,3 +238,55 @@ export const deleteShow = async (showId) => {
     throw new Error("Failed to delete show. Please try again.");
   }
 };
+
+// import axiosBookingInstance from "../config/axiosBookingInstance";
+
+// export const getOwnerShows = async () => {
+//   const token = localStorage.getItem("authToken");
+//   const res = await axiosBookingInstance.get("/booking/owner/shows", {
+//     headers: { Authorization: `Bearer ${token}` },
+//   });
+//   return res.data || [];
+// };
+
+// export const createShow = async (payload) => {
+//   const token = localStorage.getItem("authToken");
+//   const res = await axiosBookingInstance.post(
+//     "/booking/owner/shows",
+//     {
+//       movieId: payload.movieId,      // STRING
+//       screenId: Number(payload.screenId),
+//       startTime: payload.startTime,
+//       endTime: payload.endTime,
+//     },
+//     { headers: { Authorization: `Bearer ${token}` } }
+//   );
+//   return res.data;
+// };
+
+// export const updateShow = async (payload) => {
+//   const token = localStorage.getItem("authToken");
+//   const { showId, movieId, screenId, startTime, endTime } = payload;
+
+//   const body = {};
+//   if (movieId) body.movieId = movieId;
+//   if (screenId) body.screenId = Number(screenId);
+//   if (startTime) body.startTime = startTime;
+//   if (endTime) body.endTime = endTime;
+
+//   const res = await axiosBookingInstance.put(
+//     `/booking/owner/shows/${showId}`,
+//     body,
+//     { headers: { Authorization: `Bearer ${token}` } }
+//   );
+//   return res.data;
+// };
+
+// export const deleteShow = async (showId) => {
+//   const token = localStorage.getItem("authToken");
+//   await axiosBookingInstance.delete(`/booking/owner/shows/${showId}`, {
+//     headers: { Authorization: `Bearer ${token}` },
+//   });
+// };
+
+

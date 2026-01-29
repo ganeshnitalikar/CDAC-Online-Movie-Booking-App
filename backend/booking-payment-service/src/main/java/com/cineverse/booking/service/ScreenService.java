@@ -10,11 +10,11 @@ import java.util.List;
 public interface ScreenService {
 
     Screen createScreen(CreateScreenRequest request, String requesterId, String role);
-//    ScreenResponse updateScreen(
-//            Long screenId,
-//            UpdateScreenRequest request,
-//            String ownerId
-//    );
+    ScreenResponse updateScreen(
+            Long screenId,
+            UpdateScreenRequest request,
+            String ownerId
+    );
     public List<ScreenResponse> getScreensByTheatre(Long theatreId);
     List<ScreenResponse> getScreensByOwner(String ownerId);
     void deleteScreen(String screenId, String ownerId);

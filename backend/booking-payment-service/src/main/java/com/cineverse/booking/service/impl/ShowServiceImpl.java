@@ -1,6 +1,7 @@
 package com.cineverse.booking.service.impl;
 
 import com.cineverse.booking.dto.request.CreateShowRequest;
+import com.cineverse.booking.dto.response.OwnerShowResponse;
 import com.cineverse.booking.dto.response.ShowResponse;
 import com.cineverse.booking.dto.response.ShowSeatDetailsResponse;
 import com.cineverse.booking.entity.Screen;
@@ -27,7 +28,60 @@ public class ShowServiceImpl implements ShowService {
     private final ShowRepository showRepository;
     private final ScreenRepository screenRepository;
     
-    
+    @Override
+    @Transactional
+    public List<OwnerShowResponse> getShowsByOwner(String ownerId) {
+
+        List<Show> shows =
+                showRepository.findByScreenTheatreOwnerId(ownerId);
+
+        return shows.stream()
+                .map(show -> new OwnerShowResponse(
+                        show.getId(),
+                        show.getMovieId(),
+
+                        show.getScreen().getId(),
+                        show.getScreen().getName(),
+
+                        show.getScreen().getTheatre().getId(),
+                        show.getScreen().getTheatre().getName(),
+
+                        show.getStartTime(),
+                        show.getEndTime()
+                ))
+                .toList();
+    }
+    @Override
+    @Transactional
+    public List<ShowResponse> getShowsByMovie(String movieId) {
+
+        List<Show> shows = showRepository
+                .findByMovieIdAndStartTimeAfter(
+                        movieId,
+                        LocalDateTime.now()
+                );
+
+        if (shows.isEmpty()) {
+            return List.of(); 
+        }
+
+        return shows.stream()
+                .map(show -> new ShowResponse(
+                        show.getId(),
+                        show.getMovieId(),
+
+                        show.getScreen().getId(),
+                        show.getScreen().getName(),
+
+                        show.getScreen().getTheatre().getId(),
+                        show.getScreen().getTheatre().getName(),
+
+                        show.getStartTime(),
+                        show.getEndTime()
+                ))
+                .toList();
+    }
+
     
     @Override
     @Transactional
@@ -57,14 +111,29 @@ public class ShowServiceImpl implements ShowService {
     }
 
     @Override
-    public Show createShow(CreateShowRequest request, String requesterId, String role) {
-
+    @Transactional
+    public OwnerShowResponse createShow(
+            CreateShowRequest request,
+            String requesterId,
+            String role
+    ) {
         Screen screen = screenRepository.findById(request.getScreenId())
-                .orElseThrow(() -> new RuntimeException("Screen not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Screen not found"));
 
         if (role.equals("THEATER_OWNER") &&
             !screen.getTheatre().getOwnerId().equals(requesterId)) {
             throw new AccessDeniedException("Not your theatre");
+        }
+
+        boolean overlapExists = showRepository
+                .existsByScreenIdAndTimeOverlap(
+                        request.getScreenId(),
+                        request.getStartTime(),
+                        request.getEndTime()
+                );
+
+        if (overlapExists) {
+            throw new IllegalStateException("Show overlaps with existing show");
         }
 
         Show show = new Show();
@@ -73,8 +142,23 @@ public class ShowServiceImpl implements ShowService {
         show.setStartTime(request.getStartTime());
         show.setEndTime(request.getEndTime());
 
-        return showRepository.save(show);
+        Show saved = showRepository.save(show);
+
+        return new OwnerShowResponse(
+                saved.getId(),
+                saved.getMovieId(),
+
+                screen.getId(),
+                screen.getName(),
+
+                screen.getTheatre().getId(),
+                screen.getTheatre().getName(),
+
+                saved.getStartTime(),
+                saved.getEndTime()
+        );
     }
+
 
     @Transactional
     @Override

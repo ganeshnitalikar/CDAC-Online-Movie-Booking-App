@@ -3,7 +3,9 @@ package com.cineverse.booking.controller.owner;
 import com.cineverse.booking.dto.request.CreateScreenRequest;
 import com.cineverse.booking.dto.request.CreateShowRequest;
 import com.cineverse.booking.dto.request.UpdateScreenRequest;
+import com.cineverse.booking.dto.response.OwnerShowResponse;
 import com.cineverse.booking.dto.response.ScreenResponse;
+import com.cineverse.booking.dto.response.ShowResponse;
 import com.cineverse.booking.entity.Screen;
 import com.cineverse.booking.entity.Show;
 import com.cineverse.booking.service.ScreenService;
@@ -36,6 +38,19 @@ public class OwnerShowController {
                 jwt.getClaim("role")
         );
     }
+    
+    @PutMapping("/screens/{screenId}")
+    public void updateScreen(
+    		@RequestBody UpdateScreenRequest request,
+            @PathVariable Long screenId,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        screenService.updateScreen(
+                screenId,
+                request,
+                jwt.getSubject()
+        );
+    }
     @DeleteMapping("/screens/{screenId}")
     public void deleteScreen(
             @PathVariable String screenId,
@@ -53,16 +68,24 @@ public class OwnerShowController {
     ) {
         return screenService.getScreensByOwner(jwt.getSubject());
     }
+    
+    @GetMapping("/shows")
+    public List<OwnerShowResponse> getOwnerShows(
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        return showService.getShowsByOwner(jwt.getSubject());
+    }
+
 
     @PostMapping("/shows")
-    public Show createShow(
+    public OwnerShowResponse createShow(
             @Valid @RequestBody CreateShowRequest request,
             @AuthenticationPrincipal Jwt jwt
     ) {
         return showService.createShow(
                 request,
                 jwt.getSubject(),
-                jwt.getClaim("role")
+                jwt.getClaim("role") 
         );
     }
 }

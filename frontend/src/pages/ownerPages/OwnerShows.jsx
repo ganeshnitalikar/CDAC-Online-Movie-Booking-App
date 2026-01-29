@@ -17,7 +17,6 @@ import {
 	TextField,
 	Alert,
 	Skeleton,
-	IconButton,
 	Chip,
 	CircularProgress,
 	FormControl,
@@ -31,7 +30,6 @@ import {
 	Delete as DeleteIcon,
 	AccessTime as ShowIcon,
 	Refresh as RefreshIcon,
-	Movie as MovieIcon,
 	TheaterComedy as ScreenIcon,
 } from '@mui/icons-material';
 import {
@@ -40,71 +38,186 @@ import {
 	updateShow,
 	deleteShow,
 } from '../../services/ownerShowService';
-import { getOwnerScreens } from '../../services/ownerScreenService';
-import { getOwnerMovies } from '../../services/movie.owner.service';
+import { getOwnerScreens, getOwnerTheatres } from '../../services/ownerScreenService';
+import { getPublicMovies } from '../../services/movie.public.service';
+import { toast } from 'react-toastify';
 
 const OwnerShows = () => {
+	// Data state
 	const [shows, setShows] = useState([]);
 	const [screens, setScreens] = useState([]);
+	const [theatres, setTheatres] = useState([]);
 	const [movies, setMovies] = useState([]);
+
+	// Selection state (store raw IDs like OwnerScreens)
+	const [selectedTheatreId, setSelectedTheatreId] = useState(null);
+	const [selectedScreenId, setSelectedScreenId] = useState(null);
+
+	// UI state
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [editingShow, setEditingShow] = useState(null);
+	const [submitting, setSubmitting] = useState(false);
+
+	// Form state
 	const [formData, setFormData] = useState({
 		movieId: '',
 		screenId: '',
-		showTime: '',
-		price: '',
+		startTime: '',
+		endTime: '',
 	});
-	const [submitting, setSubmitting] = useState(false);
 
-	const fetchData = async () => {
+	// Fetch shows
+	const fetchShows = async () => {
+		try {
+			const data = await getOwnerShows();
+			setShows(Array.isArray(data) ? data : []);
+		} catch (err) {
+			console.error('Error fetching shows:', err);
+			setError(err.message || 'Failed to load shows');
+			setShows([]);
+		}
+	};
+
+	// Fetch screens
+	const fetchScreens = async () => {
+		try {
+			const data = await getOwnerScreens();
+			setScreens(Array.isArray(data) ? data : []);
+		} catch (err) {
+			console.error('Error fetching screens:', err);
+			setScreens([]);
+		}
+	};
+
+	// Fetch theatres
+	const fetchTheatres = async (autoSelect = true) => {
+		try {
+			const theatresList = await getOwnerTheatres();
+			setTheatres(Array.isArray(theatresList) ? theatresList : []);
+
+			// Auto-select first theatre if available and none selected
+			if (autoSelect && theatresList && theatresList.length > 0) {
+				setSelectedTheatreId((currentId) => {
+					if (!currentId) {
+						const firstTheatre = Array.isArray(theatresList) ? theatresList[0] : theatresList;
+						if (firstTheatre && firstTheatre.id) {
+							return firstTheatre.id;
+						}
+					}
+					return currentId;
+				});
+			}
+		} catch (err) {
+			console.error('Error fetching theatres:', err);
+		}
+	};
+
+	// Fetch movies from public API
+	const fetchMovies = async () => {
+		try {
+			const data = await getPublicMovies();
+			setMovies(Array.isArray(data) ? data : []);
+		} catch (err) {
+			console.error('Error fetching movies:', err);
+			setMovies([]);
+		}
+	};
+
+	// Fetch all data
+	const fetchAllData = async () => {
 		setLoading(true);
 		setError(null);
 		try {
-			const [showsData, screensData, moviesData] = await Promise.all([
-				getOwnerShows(),
-				getOwnerScreens(),
-				getOwnerMovies(),
+			await Promise.all([
+				fetchTheatres(),
+				fetchScreens(),
+				fetchShows(),
+				fetchMovies(),
 			]);
-			setShows(Array.isArray(showsData) ? showsData : []);
-			setScreens(Array.isArray(screensData) ? screensData : []);
-			setMovies(Array.isArray(moviesData) ? moviesData : []);
 		} catch (err) {
 			console.error('Error fetching data:', err);
 			setError(err.message || 'Failed to load data');
-			setShows([]);
 		} finally {
 			setLoading(false);
 		}
 	};
 
 	useEffect(() => {
-		fetchData();
+		fetchAllData();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
+	// Auto-select first screen when theatre changes
+	useEffect(() => {
+		if (selectedTheatreId && screens.length > 0) {
+			const theatreScreens = screens.filter(
+				(screen) =>
+					screen.theatreId === selectedTheatreId ||
+					screen.theatre?.id === selectedTheatreId
+			);
+			if (theatreScreens.length > 0) {
+				setSelectedScreenId(theatreScreens[0].id);
+			} else {
+				setSelectedScreenId(null);
+			}
+		} else {
+			setSelectedScreenId(null);
+		}
+	}, [selectedTheatreId, screens]);
+
+	// Filter screens by selected theatre (same pattern as OwnerScreens)
+	const filteredScreens = selectedTheatreId
+		? screens.filter(
+				(screen) =>
+					screen.theatreId === selectedTheatreId ||
+					screen.theatre?.id === selectedTheatreId
+		  )
+		: [];
+
+	// Filter shows by selected screen
+	const filteredShows = selectedScreenId
+		? shows.filter(
+				(show) =>
+					show.screenId === selectedScreenId ||
+					show.screen?.id === selectedScreenId
+		  )
+		: [];
+
+	// Handlers
+	const handleTheatreChange = (e) => {
+		setSelectedTheatreId(e.target.value);
+	};
+
+	const handleScreenChange = (e) => {
+		setSelectedScreenId(e.target.value);
+	};
+
 	const handleOpenDialog = (show = null) => {
+		console.log("Opening Dialog with show:", show);
 		if (show) {
 			setEditingShow(show);
-			// Format showTime for datetime-local input
-			const showTime = show.showTime || show.startTime;
-			const formattedTime = showTime
-				? new Date(showTime).toISOString().slice(0, 16)
+			const formattedStart = show.startTime
+				? new Date(show.startTime).toISOString().slice(0, 16)
+				: '';
+			const formattedEnd = show.endTime
+				? new Date(show.endTime).toISOString().slice(0, 16)
 				: '';
 			setFormData({
-				movieId: show.movieId?.toString() || show.movie?.id?.toString() || '',
-				screenId: show.screenId?.toString() || show.screen?.id?.toString() || '',
-				showTime: formattedTime,
-				price: show.price?.toString() || '',
+				movieId: (show.movieId || show.movie?.id || '').toString(),
+				screenId: (show.screenId || show.screen?.id || '').toString(),
+				startTime: formattedStart,
+				endTime: formattedEnd,
 			});
 		} else {
+			// CREATE mode
 			setEditingShow(null);
 			setFormData({
-				movieId: '',
-				screenId: '',
-				showTime: '',
-				price: '',
+				movieId: movies[0].id.toString(),
+				screenId: selectedScreenId ? selectedScreenId.toString() : screens[0].id.toString(),
+				startTime: '',
+				endTime: '',
 			});
 		}
 		setError(null);
@@ -117,19 +230,14 @@ const OwnerShows = () => {
 		setFormData({
 			movieId: '',
 			screenId: '',
-			showTime: '',
-			price: '',
+			startTime: '',
+			endTime: '',
 		});
 	};
 
 	const handleSubmit = async () => {
-		if (!formData.movieId || !formData.screenId || !formData.showTime || !formData.price) {
+		if (!formData.movieId || !formData.screenId || !formData.startTime || !formData.endTime) {
 			setError('All fields are required');
-			return;
-		}
-
-		if (parseFloat(formData.price) <= 0) {
-			setError('Price must be greater than 0');
 			return;
 		}
 
@@ -137,28 +245,39 @@ const OwnerShows = () => {
 		setError(null);
 
 		try {
-			// Convert showTime to ISO string
-			const showTimeISO = new Date(formData.showTime).toISOString();
-			
-			const payload = {
-				movieId: formData.movieId,
-				screenId: formData.screenId,
-				showTime: showTimeISO,
-				price: parseFloat(formData.price),
-			};
+			const startTimeISO = new Date(formData.startTime).toISOString();
+			const endTimeISO = new Date(formData.endTime).toISOString();
 
-			if (editingShow) {
-				await updateShow(editingShow.id, payload);
+			if (editingShow && editingShow.id) {
+				// UPDATE - showId comes from editingShow, sent in URL
+				console.log("Editing Show:", editingShow);
+				await updateShow({
+					showId: editingShow.id,
+					movieId: formData.movieId,
+					screenId: formData.screenId,
+					startTime: startTimeISO,
+					endTime: endTimeISO,
+				});
+				toast.success('Show updated successfully!');
 			} else {
-				await createShow(payload);
+				// CREATE - no showId
+				await createShow({
+					movieId: formData.movieId,
+					screenId: formData.screenId,
+					startTime: startTimeISO,
+					endTime: endTimeISO,
+				});
+				toast.success('Show scheduled successfully!');
 			}
-			
-			await fetchData();
-			setSubmitting(false);
+
+			await fetchShows();
 			handleCloseDialog();
 		} catch (err) {
 			console.error('Error saving show:', err);
-			setError(err.message || 'Failed to save show');
+			const errorMessage = err.message || 'Failed to save show';
+			setError(errorMessage);
+			toast.error(errorMessage);
+		} finally {
 			setSubmitting(false);
 		}
 	};
@@ -170,13 +289,16 @@ const OwnerShows = () => {
 
 		try {
 			await deleteShow(showId);
-			await fetchData();
+			toast.success('Show deleted successfully!');
+			await fetchShows();
 		} catch (err) {
 			console.error('Error deleting show:', err);
 			setError(err.message || 'Failed to delete show');
+			toast.error(err.message || 'Failed to delete show');
 		}
 	};
 
+	// Helpers
 	const formatShowTime = (dateTimeString) => {
 		if (!dateTimeString) return 'N/A';
 		try {
@@ -196,14 +318,20 @@ const OwnerShows = () => {
 	};
 
 	const getMovieName = (movieId) => {
-		const movie = movies.find((m) => m.id === Number(movieId) || m.id === movieId);
-		return movie?.title || 'Unknown Movie';
+		const movie = movies.find(
+			(m) => m.id === Number(movieId) || m.id === movieId
+		);
+		return movie?.title || `Movie ${movieId || ''}`;
 	};
 
 	const getScreenName = (screenId) => {
-		const screen = screens.find((s) => s.id === Number(screenId) || s.id === screenId);
+		const screen = screens.find(
+			(s) => s.id === Number(screenId) || s.id === screenId
+		);
 		return screen?.name || 'Unknown Screen';
 	};
+
+	const canScheduleShow = selectedTheatreId && selectedScreenId && movies.length > 0;
 
 	return (
 		<Box sx={{ py: 4 }}>
@@ -222,7 +350,7 @@ const OwnerShows = () => {
 						<Button
 							variant="outlined"
 							startIcon={<RefreshIcon />}
-							onClick={fetchData}
+							onClick={fetchAllData}
 							disabled={loading}
 							sx={{ textTransform: 'none' }}
 						>
@@ -232,13 +360,74 @@ const OwnerShows = () => {
 							variant="contained"
 							startIcon={<AddIcon />}
 							onClick={() => handleOpenDialog()}
-							disabled={screens.length === 0 || movies.length === 0}
+							disabled={!canScheduleShow}
 							sx={{ textTransform: 'none' }}
 						>
 							Schedule Show
 						</Button>
 					</Stack>
 				</Stack>
+
+				{/* Theatre & Screen Selectors */}
+				<Paper
+					elevation={0}
+					sx={{
+						p: 2,
+						mb: 3,
+						borderRadius: 2,
+						border: '1px solid',
+						borderColor: 'divider',
+					}}
+				>
+					<Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
+						{/* Theatre Selector */}
+						<Typography variant="body2" color="text.secondary" sx={{ minWidth: 100 }}>
+							Select Theatre:
+						</Typography>
+						<FormControl size="small" sx={{ minWidth: 250 }}>
+							<InputLabel>Theatre</InputLabel>
+							<Select
+								value={selectedTheatreId || ''}
+								label="Theatre"
+								onChange={handleTheatreChange}
+							>
+								{theatres.map((theatre) => (
+									<MenuItem key={theatre.id} value={theatre.id}>
+										{theatre.name || `Theatre ${theatre.id}`}
+									</MenuItem>
+								))}
+							</Select>
+						</FormControl>
+
+						{/* Screen Selector */}
+						<Typography variant="body2" color="text.secondary" sx={{ minWidth: 100 }}>
+							Select Screen:
+						</Typography>
+						<FormControl size="small" sx={{ minWidth: 250 }} disabled={!selectedTheatreId}>
+							<InputLabel>Screen</InputLabel>
+							<Select
+								value={selectedScreenId || ''}
+								label="Screen"
+								onChange={handleScreenChange}
+							>
+								{filteredScreens.map((screen) => (
+									<MenuItem key={screen.id} value={screen.id}>
+										{screen.name} ({screen.capacity || 0} seats)
+									</MenuItem>
+								))}
+							</Select>
+						</FormControl>
+
+						{selectedScreenId && (
+							<Chip
+								label={`${filteredShows.length} show(s)`}
+								size="small"
+								color="primary"
+								variant="outlined"
+							/>
+						)}
+					</Stack>
+				</Paper>
 
 				{/* Error Alert */}
 				{error && (
@@ -247,18 +436,24 @@ const OwnerShows = () => {
 					</Alert>
 				)}
 
-				{/* Info Alert */}
-				{(screens.length === 0 || movies.length === 0) && (
-					<Alert severity="info" sx={{ mb: 3 }}>
-						{screens.length === 0 && movies.length === 0
-							? 'Please add screens and movies before scheduling shows.'
-							: screens.length === 0
-							? 'Please add screens before scheduling shows.'
-							: 'Please add movies before scheduling shows.'}
+				{/* Info Alerts */}
+				{theatres.length === 0 && !loading && (
+					<Alert severity="info" sx={{ mb: 2 }}>
+						Please add a theatre first from the Screens page.
+					</Alert>
+				)}
+				{selectedTheatreId && filteredScreens.length === 0 && !loading && (
+					<Alert severity="info" sx={{ mb: 2 }}>
+						No screens found for this theatre. Please add screens first.
+					</Alert>
+				)}
+				{movies.length === 0 && !loading && (
+					<Alert severity="info" sx={{ mb: 2 }}>
+						No movies available. Please wait for movies to be approved.
 					</Alert>
 				)}
 
-				{/* Shows Grid */}
+				{/* Content Area */}
 				{loading ? (
 					<Grid container spacing={3}>
 						{[1, 2, 3].map((i) => (
@@ -267,7 +462,45 @@ const OwnerShows = () => {
 							</Grid>
 						))}
 					</Grid>
-				) : shows.length === 0 ? (
+				) : !selectedTheatreId ? (
+					<Paper
+						elevation={0}
+						sx={{
+							p: 6,
+							textAlign: 'center',
+							borderRadius: 3,
+							border: '1px solid',
+							borderColor: 'divider',
+						}}
+					>
+						<ScreenIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+						<Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
+							Select a Theatre
+						</Typography>
+						<Typography variant="body2" color="text.secondary">
+							Please select a theatre from the dropdown above to view and manage screens
+						</Typography>
+					</Paper>
+				) : !selectedScreenId ? (
+					<Paper
+						elevation={0}
+						sx={{
+							p: 6,
+							textAlign: 'center',
+							borderRadius: 3,
+							border: '1px solid',
+							borderColor: 'divider',
+						}}
+					>
+						<ScreenIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+						<Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
+							Select a Screen
+						</Typography>
+						<Typography variant="body2" color="text.secondary">
+							Please select a screen from the dropdown above to view and manage shows
+						</Typography>
+					</Paper>
+				) : filteredShows.length === 0 ? (
 					<Paper
 						elevation={0}
 						sx={{
@@ -283,13 +516,13 @@ const OwnerShows = () => {
 							No Shows Scheduled
 						</Typography>
 						<Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-							Start scheduling shows for your movies and screens
+							Start scheduling shows for this screen
 						</Typography>
 						<Button
 							variant="contained"
 							startIcon={<AddIcon />}
 							onClick={() => handleOpenDialog()}
-							disabled={screens.length === 0 || movies.length === 0}
+							disabled={!canScheduleShow}
 							sx={{ textTransform: 'none' }}
 						>
 							Schedule Your First Show
@@ -297,7 +530,7 @@ const OwnerShows = () => {
 					</Paper>
 				) : (
 					<Grid container spacing={3}>
-						{shows.map((show) => (
+						{filteredShows.map((show) => (
 							<Grid item xs={12} sm={6} md={4} key={show.id}>
 								<Card
 									elevation={0}
@@ -325,18 +558,18 @@ const OwnerShows = () => {
 										<Stack spacing={1.5}>
 											<Box>
 												<Typography variant="body2" color="text.secondary">
-													Show Time
+													Start Time
 												</Typography>
 												<Typography variant="body1" sx={{ fontWeight: 600 }}>
-													{formatShowTime(show.showTime || show.startTime)}
+													{formatShowTime(show.startTime)}
 												</Typography>
 											</Box>
 											<Box>
 												<Typography variant="body2" color="text.secondary">
-													Price
+													End Time
 												</Typography>
-												<Typography variant="h6" sx={{ fontWeight: 600, color: 'primary.main' }}>
-													₹{show.price}
+												<Typography variant="body1" sx={{ fontWeight: 600 }}>
+													{formatShowTime(show.endTime)}
 												</Typography>
 											</Box>
 										</Stack>
@@ -367,24 +600,25 @@ const OwnerShows = () => {
 				)}
 
 				{/* Add/Edit Dialog */}
-				<Dialog
-					open={dialogOpen}
-					onClose={handleCloseDialog}
-					maxWidth="sm"
-					fullWidth
-				>
+				<Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
 					<DialogTitle>
 						{editingShow ? 'Edit Show' : 'Schedule New Show'}
 					</DialogTitle>
 					<DialogContent>
 						<Stack spacing={3} sx={{ mt: 1 }}>
+							{error && (
+								<Alert severity="error" onClose={() => setError(null)}>
+									{error}
+								</Alert>
+							)}
+
 							<FormControl fullWidth required>
 								<InputLabel>Movie</InputLabel>
 								<Select
 									value={formData.movieId}
 									onChange={(e) => setFormData({ ...formData, movieId: e.target.value })}
 									label="Movie"
-									disabled={submitting}
+									disabled={submitting || movies.length === 0}
 								>
 									{movies.map((movie) => (
 										<MenuItem key={movie.id} value={movie.id.toString()}>
@@ -402,9 +636,9 @@ const OwnerShows = () => {
 									label="Screen"
 									disabled={submitting}
 								>
-									{screens.map((screen) => (
+									{filteredScreens.map((screen) => (
 										<MenuItem key={screen.id} value={screen.id.toString()}>
-											{screen.name} ({screen.capacity} seats)
+											{screen.name} ({screen.capacity || 0} seats)
 										</MenuItem>
 									))}
 								</Select>
@@ -412,36 +646,29 @@ const OwnerShows = () => {
 
 							<TextField
 								fullWidth
-								label="Show Time"
+								label="Start Time"
 								type="datetime-local"
-								value={formData.showTime}
-								onChange={(e) => setFormData({ ...formData, showTime: e.target.value })}
-								InputLabelProps={{
-									shrink: true,
-								}}
+								value={formData.startTime}
+								onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+								InputLabelProps={{ shrink: true }}
 								required
 								disabled={submitting}
 							/>
 
 							<TextField
 								fullWidth
-								label="Ticket Price (₹)"
-								type="number"
-								value={formData.price}
-								onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+								label="End Time"
+								type="datetime-local"
+								value={formData.endTime}
+								onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+								InputLabelProps={{ shrink: true }}
 								required
-								inputProps={{ min: 1, step: 0.01 }}
 								disabled={submitting}
-								helperText="Price per ticket in rupees"
 							/>
 						</Stack>
 					</DialogContent>
 					<DialogActions>
-						<Button
-							onClick={handleCloseDialog}
-							disabled={submitting}
-							sx={{ textTransform: 'none' }}
-						>
+						<Button onClick={handleCloseDialog} disabled={submitting} sx={{ textTransform: 'none' }}>
 							Cancel
 						</Button>
 						<Button
@@ -461,3 +688,559 @@ const OwnerShows = () => {
 };
 
 export default OwnerShows;
+
+// import React, { useEffect, useState } from 'react';
+// import {
+//   Box,
+//   Container,
+//   Typography,
+//   Grid,
+//   Paper,
+//   Button,
+//   Stack,
+//   Card,
+//   CardContent,
+//   CardActions,
+//   Dialog,
+//   DialogTitle,
+//   DialogContent,
+//   DialogActions,
+//   TextField,
+//   Alert,
+//   Skeleton,
+//   Chip,
+//   CircularProgress,
+//   FormControl,
+//   InputLabel,
+//   Select,
+//   MenuItem,
+// } from '@mui/material';
+// import {
+//   Add as AddIcon,
+//   Edit as EditIcon,
+//   Delete as DeleteIcon,
+//   AccessTime as ShowIcon,
+//   Refresh as RefreshIcon,
+//   TheaterComedy as ScreenIcon,
+// } from '@mui/icons-material';
+// import {
+//   getOwnerShows,
+//   createShow,
+//   updateShow,
+//   deleteShow,
+// } from '../../services/ownerShowService';
+// import { getOwnerScreens, getOwnerTheatres } from '../../services/ownerScreenService';
+// import { getPublicMovies } from '../../services/movie.public.service';
+// import { toast } from 'react-toastify';
+
+// const OwnerShows = () => {
+//   const [shows, setShows] = useState([]);
+//   const [screens, setScreens] = useState([]);
+//   const [theatres, setTheatres] = useState([]);
+//   const [movies, setMovies] = useState([]);
+
+//   const [selectedTheatreId, setSelectedTheatreId] = useState(null);
+//   const [selectedScreenId, setSelectedScreenId] = useState(null);
+
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState(null);
+//   const [dialogOpen, setDialogOpen] = useState(false);
+//   const [editingShow, setEditingShow] = useState(null);
+//   const [submitting, setSubmitting] = useState(false);
+
+//   const [formData, setFormData] = useState({
+//     movieId: '',
+//     screenId: '',
+//     startTime: '',
+//     endTime: '',
+//   });
+
+//   const fetchAllData = async () => {
+//     setLoading(true);
+//     try {
+//       const [t, s, sh, m] = await Promise.all([
+//         getOwnerTheatres(),
+//         getOwnerScreens(),
+//         getOwnerShows(),
+//         getPublicMovies(),
+//       ]);
+//       setTheatres(t || []);
+//       setScreens(s || []);
+//       setShows(sh || []);
+//       setMovies(m || []);
+//       if (t?.length && !selectedTheatreId) setSelectedTheatreId(t[0].id);
+//     } catch (e) {
+//       setError(e.message || 'Failed to load data');
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   useEffect(() => { fetchAllData(); }, []);
+
+//   useEffect(() => {
+//     if (!selectedTheatreId) return;
+//     const filtered = screens.filter(
+//       s => s.theatreId === selectedTheatreId || s.theatre?.id === selectedTheatreId
+//     );
+//     setSelectedScreenId(filtered.length ? filtered[0].id : null);
+//   }, [selectedTheatreId, screens]);
+
+//   const filteredScreens = selectedTheatreId
+//     ? screens.filter(s => s.theatreId === selectedTheatreId || s.theatre?.id === selectedTheatreId)
+//     : [];
+
+//   const filteredShows = selectedScreenId
+//     ? shows.filter(sh => sh.screenId === selectedScreenId || sh.screen?.id === selectedScreenId)
+//     : [];
+
+//   const handleOpenDialog = (show = null) => {
+//     if (show) {
+//       setEditingShow(show);
+//       setFormData({
+//         movieId: show.movieId ?? '',
+//         screenId: (show.screenId || show.screen?.id || '').toString(),
+//         startTime: show.startTime ? new Date(show.startTime).toISOString().slice(0, 16) : '',
+//         endTime: show.endTime ? new Date(show.endTime).toISOString().slice(0, 16) : '',
+//       });
+//     } else {
+//       setEditingShow(null);
+//       setFormData({
+//         movieId: movies.length > 0 ? movies[0].id : '',
+//         screenId: selectedScreenId ? selectedScreenId.toString() : '',
+//         startTime: '',
+//         endTime: '',
+//       });
+//     }
+//     setDialogOpen(true);
+//     setError(null);
+//   };
+
+//   const handleSubmit = async () => {
+//     const { movieId, screenId, startTime, endTime } = formData;
+//     if (!movieId || !screenId || !startTime || !endTime) {
+//       setError('All fields are required');
+//       return;
+//     }
+
+//     setSubmitting(true);
+//     try {
+//       const payload = {
+//         movieId,
+//         screenId,
+//         startTime: new Date(startTime).toISOString(),
+//         endTime: new Date(endTime).toISOString(),
+//       };
+
+//       if (editingShow?.id) {
+//         await updateShow({ showId: editingShow.id, ...payload });
+//         toast.success('Show updated successfully');
+//       } else {
+//         await createShow(payload);
+//         toast.success('Show scheduled successfully');
+//       }
+
+//       await fetchAllData();
+//       setDialogOpen(false);
+//     } catch (e) {
+//       setError(e.message);
+//       toast.error(e.message);
+//     } finally {
+//       setSubmitting(false);
+//     }
+//   };
+
+//   const handleDelete = async (id) => {
+//     if (!window.confirm('Delete this show?')) return;
+//     await deleteShow(id);
+//     toast.success('Show deleted');
+//     fetchAllData();
+//   };
+
+//   const getMovieName = (id) =>
+//     movies.find(m => m.id === id)?.title || 'Unknown Movie';
+
+//   const getScreenName = (id) =>
+//     screens.find(s => s.id === id)?.name || 'Unknown Screen';
+
+//   return (
+//     <Box sx={{ py: 4 }}>
+//       <Container maxWidth="lg">
+//         {/* HEADER */}
+//         <Stack direction="row" justifyContent="space-between" mb={3}>
+//           <Typography variant="h4" fontWeight={800}>Manage Shows</Typography>
+//           <Button startIcon={<AddIcon />} variant="contained"
+//             onClick={() => handleOpenDialog()}
+//             disabled={!movies.length || !selectedScreenId}>
+//             Schedule Show
+//           </Button>
+//         </Stack>
+
+//         {error && <Alert severity="error">{error}</Alert>}
+
+//         {loading ? (
+//           <Skeleton height={200} />
+//         ) : filteredShows.length === 0 ? (
+//           <Alert severity="info">No shows scheduled</Alert>
+//         ) : (
+//           <Grid container spacing={3}>
+//             {filteredShows.map(show => (
+//               <Grid item xs={12} md={4} key={show.id}>
+//                 <Card>
+//                   <CardContent>
+//                     <Typography variant="h6">{getMovieName(show.movieId)}</Typography>
+//                     <Typography>{getScreenName(show.screenId)}</Typography>
+//                   </CardContent>
+//                   <CardActions>
+//                     <Button onClick={() => handleOpenDialog(show)}>Edit</Button>
+//                     <Button color="error" onClick={() => handleDelete(show.id)}>Delete</Button>
+//                   </CardActions>
+//                 </Card>
+//               </Grid>
+//             ))}
+//           </Grid>
+//         )}
+
+//         {/* DIALOG */}
+//         <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth>
+//           <DialogTitle>{editingShow ? 'Edit Show' : 'Schedule Show'}</DialogTitle>
+//           <DialogContent>
+//             <Stack spacing={2} mt={1}>
+//               <FormControl fullWidth>
+//                 <InputLabel>Movie</InputLabel>
+//                 <Select
+//                   value={formData.movieId}
+//                   onChange={e => setFormData({ ...formData, movieId: e.target.value })}
+//                 >
+//                   {movies.map(m => (
+//                     <MenuItem key={m.id} value={m.id}>{m.title}</MenuItem>
+//                   ))}
+//                 </Select>
+//               </FormControl>
+
+//               <FormControl fullWidth>
+//                 <InputLabel>Screen</InputLabel>
+//                 <Select
+//                   value={formData.screenId}
+//                   onChange={e => setFormData({ ...formData, screenId: e.target.value })}
+//                 >
+//                   {filteredScreens.map(s => (
+//                     <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>
+//                   ))}
+//                 </Select>
+//               </FormControl>
+
+//               <TextField type="datetime-local" label="Start"
+//                 value={formData.startTime}
+//                 onChange={e => setFormData({ ...formData, startTime: e.target.value })}
+//                 InputLabelProps={{ shrink: true }} />
+
+//               <TextField type="datetime-local" label="End"
+//                 value={formData.endTime}
+//                 onChange={e => setFormData({ ...formData, endTime: e.target.value })}
+//                 InputLabelProps={{ shrink: true }} />
+//             </Stack>
+//           </DialogContent>
+//           <DialogActions>
+//             <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
+//             <Button onClick={handleSubmit} disabled={submitting} variant="contained">
+//               {submitting ? 'Saving...' : 'Save'}
+//             </Button>
+//           </DialogActions>
+//         </Dialog>
+//       </Container>
+//     </Box>
+//   );
+// };
+
+// export default OwnerShows;
+
+
+
+// // import React, { useEffect, useState } from 'react';
+// // import {
+// //   Box,
+// //   Container,
+// //   Typography,
+// //   Grid,
+// //   Paper,
+// //   Button,
+// //   Stack,
+// //   Card,
+// //   CardContent,
+// //   CardActions,
+// //   Dialog,
+// //   DialogTitle,
+// //   DialogContent,
+// //   DialogActions,
+// //   TextField,
+// //   Alert,
+// //   Skeleton,
+// //   Chip,
+// //   CircularProgress,
+// //   FormControl,
+// //   InputLabel,
+// //   Select,
+// //   MenuItem,
+// // } from '@mui/material';
+// // import {
+// //   Add as AddIcon,
+// //   Edit as EditIcon,
+// //   Delete as DeleteIcon,
+// //   AccessTime as ShowIcon,
+// //   Refresh as RefreshIcon,
+// //   TheaterComedy as ScreenIcon,
+// // } from '@mui/icons-material';
+
+// // import {
+// //   getOwnerShows,
+// //   createShow,
+// //   updateShow,
+// //   deleteShow,
+// // } from '../../services/ownerShowService';
+// // import { getOwnerScreens, getOwnerTheatres } from '../../services/ownerScreenService';
+// // import { getPublicMovies } from '../../services/movie.public.service';
+// // import { toast } from 'react-toastify';
+
+// // const OwnerShows = () => {
+// //   const [shows, setShows] = useState([]);
+// //   const [screens, setScreens] = useState([]);
+// //   const [theatres, setTheatres] = useState([]);
+// //   const [movies, setMovies] = useState([]);
+
+// //   const [selectedTheatreId, setSelectedTheatreId] = useState(null);
+// //   const [selectedScreenId, setSelectedScreenId] = useState(null);
+
+// //   const [loading, setLoading] = useState(true);
+// //   const [error, setError] = useState(null);
+// //   const [dialogOpen, setDialogOpen] = useState(false);
+// //   const [editingShow, setEditingShow] = useState(null);
+// //   const [submitting, setSubmitting] = useState(false);
+
+// //   const [formData, setFormData] = useState({
+// //     movieId: '',
+// //     screenId: '',
+// //     startTime: '',
+// //     endTime: '',
+// //   });
+
+// //   const fetchAllData = async () => {
+// //     setLoading(true);
+// //     try {
+// //       const [t, s, sh, m] = await Promise.all([
+// //         getOwnerTheatres(),
+// //         getOwnerScreens(),
+// //         getOwnerShows(),
+// //         getPublicMovies(),
+// //       ]);
+
+// //       setTheatres(t || []);
+// //       setScreens(s || []);
+// //       setShows(sh || []);
+// //       setMovies(m || []);
+
+// //       if (!selectedTheatreId && t?.length > 0) {
+// //         setSelectedTheatreId(t[0].id);
+// //       }
+// //     } catch (err) {
+// //       setError(err.message || 'Failed to load data');
+// //     } finally {
+// //       setLoading(false);
+// //     }
+// //   };
+
+// //   useEffect(() => {
+// //     fetchAllData();
+// //   }, []);
+
+// //   useEffect(() => {
+// //     if (!selectedTheatreId) {
+// //       setSelectedScreenId(null);
+// //       return;
+// //     }
+
+// //     const theatreScreens = screens.filter(
+// //       s => s.theatreId === selectedTheatreId || s.theatre?.id === selectedTheatreId
+// //     );
+
+// //     setSelectedScreenId(theatreScreens.length > 0 ? theatreScreens[0].id : null);
+// //   }, [selectedTheatreId, screens]);
+
+// //   const filteredScreens = selectedTheatreId
+// //     ? screens.filter(
+// //         s => s.theatreId === selectedTheatreId || s.theatre?.id === selectedTheatreId
+// //       )
+// //     : [];
+
+// //   const filteredShows = selectedScreenId
+// //     ? shows.filter(
+// //         sh => sh.screenId === selectedScreenId || sh.screen?.id === selectedScreenId
+// //       )
+// //     : [];
+
+// //   const handleOpenDialog = (show = null) => {
+// //     if (show) {
+// //       setEditingShow(show);
+// //       setFormData({
+// //         movieId: show.movieId ?? '',
+// //         screenId: String(show.screenId ?? show.screen?.id ?? ''),
+// //         startTime: show.startTime ? new Date(show.startTime).toISOString().slice(0, 16) : '',
+// //         endTime: show.endTime ? new Date(show.endTime).toISOString().slice(0, 16) : '',
+// //       });
+// //     } else {
+// //       setEditingShow(null);
+// //       setFormData({
+// //         movieId: movies.length > 0 ? movies[0].id : '',
+// //         screenId: selectedScreenId ? String(selectedScreenId) : '',
+// //         startTime: '',
+// //         endTime: '',
+// //       });
+// //     }
+// //     setDialogOpen(true);
+// //     setError(null);
+// //   };
+
+// //   const handleSubmit = async () => {
+// //     const { movieId, screenId, startTime, endTime } = formData;
+
+// //     if (!movieId || !screenId || !startTime || !endTime) {
+// //       setError('All fields are required');
+// //       return;
+// //     }
+
+// //     setSubmitting(true);
+// //     try {
+// //       const payload = {
+// //         movieId, // STRING
+// //         screenId,
+// //         startTime: new Date(startTime).toISOString(),
+// //         endTime: new Date(endTime).toISOString(),
+// //       };
+
+// //       if (editingShow?.id) {
+// //         await updateShow({ showId: editingShow.id, ...payload });
+// //         toast.success('Show updated successfully');
+// //       } else {
+// //         await createShow(payload);
+// //         toast.success('Show scheduled successfully');
+// //       }
+
+// //       await fetchAllData();
+// //       setDialogOpen(false);
+// //     } catch (err) {
+// //       setError(err.message);
+// //       toast.error(err.message);
+// //     } finally {
+// //       setSubmitting(false);
+// //     }
+// //   };
+
+// //   return (
+// //     <Box sx={{ py: 4 }}>
+// //       <Container maxWidth="lg">
+// //         <Stack direction="row" justifyContent="space-between" sx={{ mb: 3 }}>
+// //           <Typography variant="h4" fontWeight={800}>Manage Shows</Typography>
+// //           <Button
+// //             variant="contained"
+// //             startIcon={<AddIcon />}
+// //             onClick={() => handleOpenDialog()}
+// //             disabled={!selectedScreenId || movies.length === 0}
+// //           >
+// //             Schedule Show
+// //           </Button>
+// //         </Stack>
+
+// //         {error && <Alert severity="error">{error}</Alert>}
+
+// //         {loading ? (
+// //           <Skeleton height={200} />
+// //         ) : (
+// //           <Grid container spacing={3}>
+// //             {filteredShows.map(show => (
+// //               <Grid item xs={12} md={4} key={show.id}>
+// //                 <Card>
+// //                   <CardContent>
+// //                     <Typography variant="h6">
+// //                       {movies.find(m => m.id === show.movieId)?.title || show.movieId}
+// //                     </Typography>
+// //                     <Typography>
+// //                       {new Date(show.startTime).toLocaleString()}
+// //                     </Typography>
+// //                   </CardContent>
+// //                   <CardActions>
+// //                     <Button onClick={() => handleOpenDialog(show)}>Edit</Button>
+// //                     <Button color="error" onClick={() => deleteShow(show.id)}>
+// //                       Delete
+// //                     </Button>
+// //                   </CardActions>
+// //                 </Card>
+// //               </Grid>
+// //             ))}
+// //           </Grid>
+// //         )}
+
+// //         {/* Dialog */}
+// //         <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth maxWidth="sm">
+// //           <DialogTitle>{editingShow ? 'Edit Show' : 'Schedule Show'}</DialogTitle>
+// //           <DialogContent>
+// //             <Stack spacing={3} mt={1}>
+// //               <FormControl fullWidth>
+// //                 <InputLabel>Movie</InputLabel>
+// //                 <Select
+// //                   value={formData.movieId}
+// //                   label="Movie"
+// //                   onChange={e => setFormData({ ...formData, movieId: e.target.value })}
+// //                 >
+// //                   {movies.map(m => (
+// //                     <MenuItem key={m.id} value={m.id}>
+// //                       {m.title}
+// //                     </MenuItem>
+// //                   ))}
+// //                 </Select>
+// //               </FormControl>
+
+// //               <FormControl fullWidth>
+// //                 <InputLabel>Screen</InputLabel>
+// //                 <Select
+// //                   value={formData.screenId}
+// //                   label="Screen"
+// //                   onChange={e => setFormData({ ...formData, screenId: e.target.value })}
+// //                 >
+// //                   {filteredScreens.map(s => (
+// //                     <MenuItem key={s.id} value={s.id}>
+// //                       {s.name}
+// //                     </MenuItem>
+// //                   ))}
+// //                 </Select>
+// //               </FormControl>
+
+// //               <TextField
+// //                 type="datetime-local"
+// //                 label="Start Time"
+// //                 value={formData.startTime}
+// //                 onChange={e => setFormData({ ...formData, startTime: e.target.value })}
+// //                 InputLabelProps={{ shrink: true }}
+// //               />
+
+// //               <TextField
+// //                 type="datetime-local"
+// //                 label="End Time"
+// //                 value={formData.endTime}
+// //                 onChange={e => setFormData({ ...formData, endTime: e.target.value })}
+// //                 InputLabelProps={{ shrink: true }}
+// //               />
+// //             </Stack>
+// //           </DialogContent>
+// //           <DialogActions>
+// //             <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
+// //             <Button onClick={handleSubmit} variant="contained" disabled={submitting}>
+// //               {submitting ? <CircularProgress size={16} /> : 'Save'}
+// //             </Button>
+// //           </DialogActions>
+// //         </Dialog>
+// //       </Container>
+// //     </Box>
+// //   );
+// // };
+
+// // export default OwnerShows;

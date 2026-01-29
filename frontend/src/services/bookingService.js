@@ -21,7 +21,7 @@ export const initiateBooking = async (showId, seatIds) => {
   }
 
   try {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("authToken");
     if (!token) {
       throw new Error("Please login to book tickets");
     }
@@ -66,7 +66,7 @@ export const getTicket = async (bookingId) => {
   }
 
   try {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("authToken");
     if (!token) {
       throw new Error("Please login to view ticket");
     }

@@ -67,20 +67,12 @@ export const getShowsByScreen = async (screenId) => {
  * @returns {Promise<Object>} Show object
  */
 export const getShowById = async (showId) => {
-  const token = localStorage.getItem("authToken");
-  if (!token) {
-    throw new Error("Authentication required. Please login.");
-  }
   if (!showId) {
     throw new Error("Show ID is required");
   }
 
   try {
-    const response = await axiosBookingInstance.get(`/shows/${showId}`,{
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await axiosBookingInstance.get(`/shows/${showId}`);
     return response.data;
   } catch (error) {
     console.error("Error fetching show details:", error);
@@ -91,5 +83,31 @@ export const getShowById = async (showId) => {
       throw new Error(error.response.data.message);
     }
     throw new Error("Failed to fetch show details. Please try again.");
+  }
+};
+
+/**
+ * Get seats for a specific show
+ * GET /shows/{showId}/seats
+ * @param {string|number} showId - Show ID
+ * @returns {Promise<Array>} Array of seat objects
+ */
+export const getSeatsByShow = async (showId) => {
+  if (!showId) {
+    throw new Error("Show ID is required");
+  }
+
+  try {
+    const response = await axiosBookingInstance.get(`/shows/${showId}/seats`);
+    return response.data || [];
+  } catch (error) {
+    console.error("Error fetching seats:", error);
+    if (error.response?.status === 404) {
+      throw new Error("Seats not found for this show");
+    }
+    if (error.response?.data?.message) {
+      throw new Error(error.response.data.message);
+    }
+    throw new Error("Failed to fetch seats. Please try again.");
   }
 };

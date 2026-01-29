@@ -13,6 +13,8 @@ import java.util.List;
 public class ShowController {
 
     private final ShowService showService;
+    
+    
 
     @GetMapping("/{screenId}/shows")
     public List<ShowResponse> getShowsByScreen(

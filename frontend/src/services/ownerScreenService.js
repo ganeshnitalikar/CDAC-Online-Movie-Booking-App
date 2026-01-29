@@ -82,7 +82,7 @@ export const getOwnerScreenById = async (screenId) => {
  * @param {Object} payload - Screen data
  * @param {string} payload.name - Screen name
  * @param {number} payload.capacity - Screen capacity (number of seats)
- * @param {string} payload.features - Screen features (comma-separated or string)
+ * @param {Array<string>} payload.features - Screen features (comma-separated or string)
  * @returns {Promise<Object>} Created screen object
  */
 export const createScreen = async (payload) => {
@@ -90,8 +90,8 @@ export const createScreen = async (payload) => {
     throw new Error("Screen data is required");
   }
 
-  if (!payload.name || !payload.capacity) {
-    throw new Error("Name and capacity are required");
+  if (!payload.name || !payload.theatreId) {
+    throw new Error("Name and theatreId are required");
   }
 
   try {
@@ -99,16 +99,21 @@ export const createScreen = async (payload) => {
     if (!token) {
       throw new Error("Authentication required. Please login.");
     }
-
-    const response = await axiosBookingInstance.post("/booking/owner/screens", {
-      name: payload.name.trim(),
-      capacity: parseInt(payload.capacity, 10),
-      features: payload.features?.trim() || "",
-    }, {
-      headers: {
-        Authorization: `Bearer ${token}`,
+    console.log(typeof(payload.features));
+    const response = await axiosBookingInstance.post(
+      "/booking/owner/screens",
+      {
+        name: payload.name.trim(),
+        theatreId: payload.theatreId,
+        capacity: payload.capacity,
+        features: payload.features,
       },
-    });
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
     return response.data;
   } catch (error) {

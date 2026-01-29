@@ -15,4 +15,6 @@ public interface TheatreService {
     List<Theatre> getTheatresByOwner(String ownerId);
 
     Theatre getTheatreById(Long theatreId);
+    
+    void deleteTheatreById(Long theatreId);
 }

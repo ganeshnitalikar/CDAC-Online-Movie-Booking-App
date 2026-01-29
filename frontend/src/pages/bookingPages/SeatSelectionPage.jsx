@@ -19,7 +19,7 @@ import {
 	ArrowBack as ArrowBackIcon,
 	EventSeat as SeatIcon,
 } from '@mui/icons-material';
-import { getShowById } from '../../services/showService';
+import { getSeatsByShow, getShowById } from '../../services/showService';
 import { initiateBooking } from '../../services/bookingService';
 
 const SeatSelectionPage = () => {
@@ -29,29 +29,28 @@ const SeatSelectionPage = () => {
 	const [selectedSeats, setSelectedSeats] = useState([]);
 	const [selectedSeatDetails, setSelectedSeatDetails] = useState([]);
 	const [bookedSeats, setBookedSeats] = useState([]);
-	const [allSeats, setAllSeats] = useState([]);
+	const [availableSeats, setAvailableSeats] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [submitting, setSubmitting] = useState(false);
 	const [error, setError] = useState(null);
 
 	useEffect(() => {
-		const fetchShow = async () => {
+		const fetchShowAndSeats = async () => {
 			setLoading(true);
 			setError(null);
 			try {
-				const showData = await getShowById(showId);
+				const [showData, seatsData] = await Promise.all([
+					getShowById(showId),
+					getSeatsByShow(showId),
+				]);
 				setShow(showData);
 				
-				// Extract seats from show data
-				if (showData.seats && Array.isArray(showData.seats)) {
-					setAllSeats(showData.seats);
-					const booked = showData.seats
-						.filter((seat) => seat.status === 'BOOKED' || seat.status === 'LOCKED' || seat.isBooked)
-						.map((seat) => seat.id || seat.seatId);
-					setBookedSeats(booked);
-				} else if (showData.bookedSeats) {
-					setBookedSeats(Array.isArray(showData.bookedSeats) ? showData.bookedSeats : []);
-				}
+				const seats = Array.isArray(seatsData) ? seatsData : [];
+				setAvailableSeats(seats);
+				const booked = seats
+					.filter((seat) => seat.status === 'BOOKED' || seat.status === 'LOCKED' || seat.isBooked)
+					.map((seat) => seat.id || seat.seatId);
+				setBookedSeats(booked);
 			} catch (err) {
 				console.error('Error fetching show:', err);
 				setError(err.message || 'Failed to load show details');
@@ -61,21 +60,21 @@ const SeatSelectionPage = () => {
 		};
 
 		if (showId) {
-			fetchShow();
+			fetchShowAndSeats();
 		}
 	}, [showId]);
 
 	// Get unique rows from actual seats data
 	const getSeatRows = () => {
-		if (!allSeats || allSeats.length === 0) return [];
-		const rows = [...new Set(allSeats.map(seat => seat.rowLabel || seat.row || seat.row_label))];
+		if (!availableSeats || availableSeats.length === 0) return [];
+		const rows = [...new Set(availableSeats.map(seat => seat.rowLabel || seat.row || seat.row_label))];
 		return rows.sort();
 	};
 
 	// Get seats for a specific row
 	const getSeatsForRow = (row) => {
-		if (!allSeats || allSeats.length === 0) return [];
-		return allSeats
+		if (!availableSeats || availableSeats.length === 0) return [];
+		return availableSeats
 			.filter(seat => (seat.rowLabel || seat.row || seat.row_label) === row)
 			.sort((a, b) => {
 				const aNum = parseInt(a.seatLabel || a.seat || a.seat_label || '0');
@@ -137,14 +136,13 @@ const SeatSelectionPage = () => {
 			console.error('Error initiating booking:', err);
 			if (err.message.includes('409') || err.message.includes('already locked')) {
 				setError('Some seats are already locked. Please select different seats.');
-				// Refresh show data to get updated seat status
-				const showData = await getShowById(showId);
-				if (showData.seats) {
-					const booked = showData.seats
-						.filter((seat) => seat.status === 'BOOKED' || seat.status === 'LOCKED')
-						.map((seat) => seat.id);
-					setBookedSeats(booked);
-				}
+				const seatsData = await getSeatsByShow(showId);
+				const seats = Array.isArray(seatsData) ? seatsData : [];
+				setAvailableSeats(seats);
+				const booked = seats
+					.filter((seat) => seat.status === 'BOOKED' || seat.status === 'LOCKED' || seat.isBooked)
+					.map((seat) => seat.id || seat.seatId);
+				setBookedSeats(booked);
 			} else if (err.message.includes('410')) {
 				setError('Booking session expired. Redirecting...');
 				setTimeout(() => {
@@ -258,7 +256,7 @@ const SeatSelectionPage = () => {
 								/>
 
 								<Stack spacing={2} sx={{ mb: 3 }}>
-									{allSeats.length > 0 ? (
+									{availableSeats.length > 0 ? (
 										getSeatRows().map((row) => {
 											const rowSeats = getSeatsForRow(row);
 											return (

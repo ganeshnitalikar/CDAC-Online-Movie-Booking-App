@@ -1,5 +1,7 @@
 package com.cineverse.booking.dto.request;
 
+import java.util.List;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -15,6 +17,7 @@ public class CreateScreenRequest {
     @NotNull
     private int capacity;
     
+    private List<String> features;
 
     @NotNull
     private Long theatreId;

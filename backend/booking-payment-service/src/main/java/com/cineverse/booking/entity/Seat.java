@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
-
 @Entity
 @Table(
     name = "seats",
@@ -23,11 +22,14 @@ public class Seat {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "seat_label", nullable = false)
-    private String seatLabel;
-
     @Column(name = "row_label", nullable = false)
     private String rowLabel;
+
+    @Column(name = "seat_number", nullable = false)
+    private String seatNumber;
+
+    @Column(name = "seat_label", nullable = false)
+    private String seatLabel;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

@@ -1,5 +1,6 @@
 package com.cineverse.booking.controller.user;
 
+import com.cineverse.booking.dto.response.ShowResponse;
 import com.cineverse.booking.dto.response.ShowSeatDetailsResponse;
 import com.cineverse.booking.entity.Show;
 import com.cineverse.booking.service.ShowService;
@@ -7,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.Map;
 import java.util.HashMap;
+import java.util.List;
 
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +25,12 @@ public class ShowDetailsController {
 //        map.put("id", showId);
 //        return map;
 //    }
+    @GetMapping
+    public List<ShowResponse> getShowsByMovie(
+            @RequestParam String movieId
+    ) {
+        return showService.getShowsByMovie(movieId);
+    }
 
     @GetMapping("/{showId}")
     public ShowSeatDetailsResponse getShowById(

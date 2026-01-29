@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +29,12 @@ public class TheatreServiceImpl implements TheatreService {
         return theatreRepository.save(theatre);
     }
 
+    @Override
+    public void deleteTheatreById(Long theatreId) {
+    	Theatre th = theatreRepository.findById(theatreId).orElseThrow(()->new RuntimeException("Theatre Does Not Exist"));
+    	theatreRepository.delete(th);
+    	return;
+    }
 
     @Transactional
     public List<TheatreResponse> getAllTheatres() {
