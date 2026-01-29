@@ -95,10 +95,41 @@ public class BookingServiceImpl implements BookingService {
         return response;
     }
 
+//    @Override
+//    public TicketResponse getTicket(Long bookingId, String userId) {
+//
+//        Booking booking = bookingRepository.findById(bookingId)
+//                .orElseThrow(() -> new RuntimeException("Booking not found"));
+//
+//        if (!booking.getUserId().equals(userId)) {
+//            throw new RuntimeException("Unauthorized");
+//        }
+//
+//        if (booking.getStatus() != BookingStatus.CONFIRMED) {
+//            throw new BookingExpiredException("Booking not confirmed");
+//        }
+//
+//        TicketResponse response = new TicketResponse();
+//        response.setBookingId(booking.getId());
+//        response.setMovieId(booking.getShow().getMovieId());
+//        response.setTheatreName(booking.getShow().getScreen().getTheatre().getName());
+//        response.setScreenName(booking.getShow().getScreen().getName());
+//        response.setShowStartTime(booking.getShow().getStartTime());
+//        response.setSeats(
+//                booking.getSeats().stream()
+//                .map(Seat::getSeatLabel)
+//                        .collect(Collectors.toSet())
+//        );
+//
+//        return response;
+//    }
+    
     @Override
+    @Transactional(readOnly = true)
     public TicketResponse getTicket(Long bookingId, String userId) {
 
-        Booking booking = bookingRepository.findById(bookingId)
+        Booking booking = bookingRepository
+                .findByIdWithShowAndSeats(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
 
         if (!booking.getUserId().equals(userId)) {
@@ -112,13 +143,19 @@ public class BookingServiceImpl implements BookingService {
         TicketResponse response = new TicketResponse();
         response.setBookingId(booking.getId());
         response.setMovieId(booking.getShow().getMovieId());
-        response.setTheatreName(booking.getShow().getScreen().getTheatre().getName());
-        response.setScreenName(booking.getShow().getScreen().getName());
+        response.setTheatreName(
+                booking.getShow().getScreen().getTheatre().getName()
+        );
+        response.setScreenName(
+                booking.getShow().getScreen().getName()
+        );
         response.setShowStartTime(booking.getShow().getStartTime());
+
         response.setSeats(
-                booking.getSeats().stream()
-                .map(Seat::getSeatLabel)
-                        .collect(Collectors.toSet())
+                booking.getSeats()
+                        .stream()
+                        .map(Seat::getSeatLabel)
+                        .toList()
         );
 
         return response;

@@ -22,10 +22,12 @@ public class OwnerMovieController {
     
     @GetMapping
     public ResponseEntity<?> getMovies(
-    		@Valid @RequestBody CreateMovieRequest request
+    		@AuthenticationPrincipal Jwt jwt
     		) {
     	return ResponseEntity.ok( 
-    			 movieService.getPublicMovies());
+    			 movieService.getOwnerMovies(
+    					 jwt.getSubject()
+    					 ));
     			
     }
 

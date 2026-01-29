@@ -62,7 +62,7 @@ const PaymentPage = () => {
 					// Payment success - DO NOT confirm booking here.
 					// Backend webhook will update booking status.
 					console.log('Payment successful:', response);
-					navigate(`/booking/${bookingId}/confirm`);
+					navigate(`/booking/${bookingId}/ticket`);
 				},
 				prefill: {
 					name: orderData.customerName || '',

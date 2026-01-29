@@ -4,6 +4,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import com.cdac.dtos.response.MovieResponse;
 import com.cdac.entities.Movie;
 
 import java.util.List;
@@ -26,7 +27,7 @@ public interface MovieRepository extends MongoRepository<Movie, String> {
     /**
      * Movies created by a specific theatre owner
      */
-    List<Movie> findByCreatedByUserId(String createdByUserId);
+    List<MovieResponse> findByCreatedByUserId(String createdByUserId);
 
     /**
      * Movies pending approval (Admin use)

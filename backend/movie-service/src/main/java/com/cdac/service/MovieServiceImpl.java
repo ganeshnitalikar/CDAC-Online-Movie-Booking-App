@@ -34,6 +34,11 @@ public class MovieServiceImpl implements MovieService {
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
+    
+    @Override
+    public List<MovieResponse> getOwnerMovies(String ownerId){
+    	return movieRepository.findByCreatedByUserId(ownerId);
+    }
 
     @Override
     public MovieResponse getMovieById(String movieId) {
