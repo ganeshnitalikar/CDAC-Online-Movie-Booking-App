@@ -12,7 +12,7 @@ const axiosBookingInstance = axios.create({
 // Attach token automatically (using "token" key as per requirements)
 axiosBookingInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("authToken");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -26,7 +26,7 @@ axiosBookingInstance.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem("token");
+      localStorage.removeItem("authToken");
       localStorage.removeItem("refresh_token");
       localStorage.removeItem("authUser");
     }

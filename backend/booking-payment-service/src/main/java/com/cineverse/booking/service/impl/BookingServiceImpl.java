@@ -44,6 +44,16 @@ public class BookingServiceImpl implements BookingService {
         if (seats.size() != request.getSeatIds().size()) {
             throw new RuntimeException("Invalid seats selected");
         }
+        boolean invalidSeat =
+                seats.stream()
+                     .anyMatch(seat ->
+                         !seat.getScreen().getId()
+                              .equals(show.getScreen().getId())
+                     );
+
+        if (invalidSeat) {
+            throw new RuntimeException("One or more seats do not belong to this show");
+        }
 
         // 🔐 seat lock check (DB level)
         boolean locked = !bookingRepository.findActiveSeatLocks(
@@ -70,12 +80,17 @@ public class BookingServiceImpl implements BookingService {
         response.setShowMovieId(show.getMovieId());
         response.setSeats(
                 seats.stream()
-                        .map(s -> s.getRowLabel() + s.getSeatLabel())
+                .map(Seat::getSeatLabel)
                         .collect(Collectors.toSet())
         );
         response.setStatus(booking.getStatus().name());
         response.setLockExpiryTime(booking.getLockExpiryTime());
-        response.setAmount(seats.size() * 20000); // ₹200 per seat
+        int amount = seats.stream()
+                .mapToInt(seat ->
+                    seat.getType() == SeatType.PREMIUM ? 30000 : 20000
+                )
+                .sum();
+        response.setAmount(amount);
 
         return response;
     }
@@ -102,7 +117,7 @@ public class BookingServiceImpl implements BookingService {
         response.setShowStartTime(booking.getShow().getStartTime());
         response.setSeats(
                 booking.getSeats().stream()
-                        .map(s -> s.getRowLabel() + s.getSeatLabel())
+                .map(Seat::getSeatLabel)
                         .collect(Collectors.toSet())
         );
 
@@ -140,7 +155,7 @@ public class BookingServiceImpl implements BookingService {
 
                     List<String> seatLabels = booking.getSeats()
                             .stream()
-                            .map(seat -> seat.getSeatLabel())
+                            .map(Seat::getSeatLabel)
                             .toList();
 
                     int amountPaid = paymentRepository

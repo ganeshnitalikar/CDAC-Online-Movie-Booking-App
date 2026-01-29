@@ -505,8 +505,8 @@ const OwnerProfile = () => {
           email: backendUser.email,
           phone: backendUser.phone || '',
           location: backendUser.location || '',
-          theaterName: 'Grand Cinema Multiplex', // MOCK
-          address: '123 Cinema Street, Mumbai',  // MOCK
+          theaterName: 'Grand Cinema Multiplex', 
+          address: '123 Cinema Street, Mumbai',  
         };
 
         setProfile(profileData);
@@ -528,7 +528,6 @@ const OwnerProfile = () => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  // ✅ Save only phone & city
   const handleSave = async () => {
     try {
       await updateUserProfile(formData);
@@ -652,7 +651,7 @@ const OwnerProfile = () => {
 
           <Divider sx={{ my: 3 }} />
 
-          {/* THEATER INFO (MOCK DISPLAY ONLY) */}
+          {/* THEATER INFO */}
           <Typography variant="h6" sx={{ mb: 2, fontWeight: 700 }}>Theater Information</Typography>
 
           <Grid container spacing={3}>

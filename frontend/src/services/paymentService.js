@@ -1,46 +1,42 @@
 import axiosBookingInstance from "../config/axiosBookingInstance";
 
 /**
- * Payment Service
- * Handles payment-related API calls
- * Base URL: http://localhost:8080
+ * Create Razorpay order
+ * POST /booking/user/payments/order
  */
-
-/**
- * Create payment order
- * POST /user/payments/order
- * @param {string|number} bookingId - Booking ID
- * @returns {Promise<Object>} Payment order data with Razorpay order details
- */
-export const createPaymentOrder = async (bookingId) => {
+export const createRazorpayOrder = async (bookingId) => {
   if (!bookingId) {
     throw new Error("Booking ID is required");
   }
 
-  try {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      throw new Error("Please login to proceed with payment");
-    }
+  const token = localStorage.getItem("authToken");
+  if (!token) {
+    throw new Error("Please login to continue");
+  }
 
-    const response = await axiosBookingInstance.post("/user/payments/order", {
-      bookingId: Number(bookingId),
-    });
+  try {
+    const response = await axiosBookingInstance.post(
+      "/booking/user/payments/order",
+      { bookingId },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
     return response.data;
   } catch (error) {
-    console.error("Error creating payment order:", error);
-    if (error.response?.status === 401) {
-      throw new Error("Please login to proceed with payment");
-    }
-    if (error.response?.status === 404) {
-      throw new Error("Booking not found");
-    }
+    console.error("Error creating Razorpay order:", error);
+
     if (error.response?.status === 410) {
-      throw new Error("Booking session expired. Please try again.");
+      throw new Error("Booking expired. Please select seats again.");
     }
+
     if (error.response?.data?.message) {
       throw new Error(error.response.data.message);
     }
-    throw new Error("Failed to create payment order. Please try again.");
+
+    throw new Error("Failed to initiate payment");
   }
 };

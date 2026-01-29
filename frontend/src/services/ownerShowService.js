@@ -102,12 +102,12 @@ export const createShow = async (payload) => {
     if (!token) {
       throw new Error("Authentication required. Please login.");
     }
-
+    console.log(payload.movieId);
     const response = await axiosBookingInstance.post("/booking/owner/shows", {
-      movieId: Number(payload.movieId),
+      movieId: payload.movieId,
       screenId: Number(payload.screenId),
-      startTime: payload.startTime, // ISO datetime string
-      endTime: payload.endTime, // ISO datetime string
+      startTime: payload.startTime, 
+      endTime: payload.endTime, 
     }, {
       headers: {
         Authorization: `Bearer ${token}`,

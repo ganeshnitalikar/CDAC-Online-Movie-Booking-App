@@ -1,8 +1,5 @@
 // Route constants for the movie booking app
 export const ROUTES = {
-
-    
-
     // Public routes
     HOME: '/',
     ABOUT: '/about',
