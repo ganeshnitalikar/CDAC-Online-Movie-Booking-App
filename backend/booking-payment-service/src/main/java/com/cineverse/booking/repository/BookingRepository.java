@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
@@ -33,5 +34,13 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByUserId(String userId);
     
     List<Booking> findByUserIdOrderByIdDesc(String userId);
-
+    @Query("""
+    	    select distinct b from Booking b
+    	    join fetch b.show s
+    	    join fetch s.screen sc
+    	    join fetch sc.theatre t
+    	    left join fetch b.seats seats
+    	    where b.id = :bookingId
+    	""")
+    	Optional<Booking> findByIdWithShowAndSeats(Long bookingId);
 }
