@@ -90,26 +90,7 @@ export const updateUserPreferences = async (prefs) => {
 
 export const getUserBookings = async () => {
 	await new Promise(r => setTimeout(r, 300));
-	return [
-		{
-			id: 'bk_1001',
-			movieTitle: 'Eternal Horizon',
-			theater: 'PVR Icon, Phoenix',
-			showTime: '2025-11-12T19:30:00Z',
-			seats: ['E5', 'E6'],
-			total: 520,
-			status: 'UPCOMING'
-		},
-		{
-			id: 'bk_1000',
-			movieTitle: 'Neon Nights',
-			theater: 'INOX, R City',
-			showTime: '2025-08-01T16:00:00Z',
-			seats: ['B3'],
-			total: 240,
-			status: 'COMPLETED'
-		}
-	]
+	return []
 }
 
 export const cancelBooking = async (bookingId) => {
