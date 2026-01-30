@@ -14,7 +14,7 @@ const AboutPage = () => {
 			<Container maxWidth="lg">
 				{/* Hero */}
 				<Box sx={{ textAlign: 'center', mb: 5 }}>
-					<Typography variant="h3" sx={{ fontWeight: 800, mb: 1 }}>About MovieHub</Typography>
+					<Typography variant="h3" sx={{ fontWeight: 800, mb: 1 }}>About CineVerse</Typography>
 					<Typography color="text.secondary">Your trusted destination for movie discovery and ticket booking across India.</Typography>
 				</Box>
 
