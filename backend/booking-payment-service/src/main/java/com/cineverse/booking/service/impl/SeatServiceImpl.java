@@ -3,11 +3,15 @@ package com.cineverse.booking.service.impl;
 import com.cineverse.booking.dto.request.CreateSeatRequest;
 import com.cineverse.booking.dto.request.SeatDto;
 import com.cineverse.booking.dto.response.SeatResponse;
+import com.cineverse.booking.entity.Booking;
+import com.cineverse.booking.entity.BookingStatus;
 import com.cineverse.booking.entity.Screen;
 import com.cineverse.booking.entity.Seat;
+import com.cineverse.booking.entity.SeatStatus;
 import com.cineverse.booking.entity.Show;
 import com.cineverse.booking.exception.AccessDeniedException;
 import com.cineverse.booking.exception.ResourceNotFoundException;
+import com.cineverse.booking.repository.BookingRepository;
 import com.cineverse.booking.repository.ScreenRepository;
 import com.cineverse.booking.repository.SeatRepository;
 import com.cineverse.booking.repository.ShowRepository;
@@ -16,7 +20,10 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +32,7 @@ public class SeatServiceImpl implements SeatService {
     private final ScreenRepository screenRepository;
     private final SeatRepository seatRepository;
     private final ShowRepository showRepository;
+    private final BookingRepository bookingRepository;
 
 
     @Override
@@ -40,12 +48,6 @@ public class SeatServiceImpl implements SeatService {
         if (role.equals("THEATER_OWNER") &&
             !screen.getTheatre().getOwnerId().equals(ownerId)) {
             throw new AccessDeniedException("Not your theatre");
-        }
-
-        // ❗ Seats should be created ONCE per screen
-        List<Seat> existingSeats = seatRepository.findByScreenId(screen.getId());
-        if (!existingSeats.isEmpty()) {
-            throw new IllegalStateException("Seats already exist for this screen");
         }
 
         for (CreateSeatRequest.SeatInput input : request.getSeats()) {
@@ -75,14 +77,42 @@ public class SeatServiceImpl implements SeatService {
 
         Long screenId = show.getScreen().getId();
 
-        return seatRepository.findByScreenId(screenId)
-                .stream()
+        // Fetch all seats of the screen
+        List<Seat> seats = seatRepository.findByScreenId(screenId);
+
+        // Fetch active bookings (LOCKED + BOOKED)
+        List<Booking> activeBookings =
+                bookingRepository.findActiveBookingsWithSeats(
+                        showId,
+                        LocalDateTime.now()
+                );
+
+        // Default all seats → AVAILABLE
+        Map<Long, SeatStatus> seatStatusMap = new HashMap<>();
+        for (Seat seat : seats) {
+            seatStatusMap.put(seat.getId(), SeatStatus.AVAILABLE);
+        }
+
+        // Override with booking info
+        for (Booking booking : activeBookings) {
+            for (Seat seat : booking.getSeats()) {
+                if (booking.getStatus() == BookingStatus.CONFIRMED) {
+                    seatStatusMap.put(seat.getId(), SeatStatus.BOOKED);
+                } else {
+                    seatStatusMap.put(seat.getId(), SeatStatus.LOCKED);
+                }
+            }
+        }
+
+        // Build response
+        return seats.stream()
                 .map(seat -> new SeatResponse(
                         seat.getId(),
                         seat.getRowLabel(),
                         seat.getSeatNumber(),
                         seat.getSeatLabel(),
-                        seat.getType()
+                        seat.getType(),
+                        seatStatusMap.get(seat.getId())
                 ))
                 .toList();
     }

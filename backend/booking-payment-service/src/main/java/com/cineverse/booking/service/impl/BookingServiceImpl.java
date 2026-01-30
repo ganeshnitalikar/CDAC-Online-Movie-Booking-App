@@ -66,6 +66,18 @@ public class BookingServiceImpl implements BookingService {
             throw new SeatAlreadyLockedException("One or more seats already locked");
         }
 
+        boolean alreadyBooked =
+                !bookingRepository.findConfirmedSeatBookings(
+                        show.getId(),
+                        request.getSeatIds()
+                ).isEmpty();
+
+        if (alreadyBooked) {
+            throw new SeatAlreadyLockedException(
+                "One or more seats are already booked"
+            );
+        }
+        
         Booking booking = new Booking();
         booking.setUserId(userId);
         booking.setShow(show);
@@ -95,35 +107,6 @@ public class BookingServiceImpl implements BookingService {
         return response;
     }
 
-//    @Override
-//    public TicketResponse getTicket(Long bookingId, String userId) {
-//
-//        Booking booking = bookingRepository.findById(bookingId)
-//                .orElseThrow(() -> new RuntimeException("Booking not found"));
-//
-//        if (!booking.getUserId().equals(userId)) {
-//            throw new RuntimeException("Unauthorized");
-//        }
-//
-//        if (booking.getStatus() != BookingStatus.CONFIRMED) {
-//            throw new BookingExpiredException("Booking not confirmed");
-//        }
-//
-//        TicketResponse response = new TicketResponse();
-//        response.setBookingId(booking.getId());
-//        response.setMovieId(booking.getShow().getMovieId());
-//        response.setTheatreName(booking.getShow().getScreen().getTheatre().getName());
-//        response.setScreenName(booking.getShow().getScreen().getName());
-//        response.setShowStartTime(booking.getShow().getStartTime());
-//        response.setSeats(
-//                booking.getSeats().stream()
-//                .map(Seat::getSeatLabel)
-//                        .collect(Collectors.toSet())
-//        );
-//
-//        return response;
-//    }
-    
     @Override
     @Transactional(readOnly = true)
     public TicketResponse getTicket(Long bookingId, String userId) {

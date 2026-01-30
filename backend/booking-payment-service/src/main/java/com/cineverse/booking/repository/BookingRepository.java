@@ -25,7 +25,34 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             Set<Long> seatIds,
             LocalDateTime now
     );
+    
+    @Query("""
+    	    select distinct b from Booking b
+    	    join fetch b.seats s
+    	    where b.show.id = :showId
+    	      and (
+    	           b.status = 'CONFIRMED'
+    	        or (b.status = 'INITIATED' and b.lockExpiryTime > :now)
+    	      )
+    	""")
+    	List<Booking> findActiveBookingsWithSeats(
+    	        Long showId,
+    	        LocalDateTime now
+    	);
 
+    @Query("""
+    	    select b from Booking b
+    	    join b.seats s
+    	    where b.show.id = :showId
+    	      and s.id in :seatIds
+    	      and b.status = 'CONFIRMED'
+    	""")
+    	List<Booking> findConfirmedSeatBookings(
+    	        Long showId,
+    	        Set<Long> seatIds
+    	);
+
+    
     List<Booking> findByStatusAndLockExpiryTimeBefore(
             BookingStatus status,
             LocalDateTime time
