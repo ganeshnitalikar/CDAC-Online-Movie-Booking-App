@@ -20,14 +20,34 @@ public class OwnerMovieController {
 
     private final MovieService movieService;
     
+    
+    /*
+     * get all movies 
+     */
+    
     @GetMapping
     public ResponseEntity<?> getMovies(
     		@Valid @RequestBody CreateMovieRequest request
     		) {
     	return ResponseEntity.ok( 
+<<<<<<< Updated upstream
     			 movieService.getPublicMovies());
+=======
+<<<<<<< Updated upstream
+    			 movieService.getOwnerMovies(
+    					 jwt.getSubject()
+    					 ));
+>>>>>>> Stashed changes
     			
+=======
+    			 movieService.getPublicMovies());			
+>>>>>>> Stashed changes
     }
+    
+    /*
+     * create a new movie
+     * ROLE - THEATER_OWNER
+     */
 
     @PostMapping
     public MovieResponse createMovie(
@@ -40,6 +60,10 @@ public class OwnerMovieController {
                 jwt.getClaim("role")
         );
     }
+    /*
+     * update a existing movie that is added by same owner
+     * ROLE - THEATER_OWNER
+     */
 
     @PutMapping("/{movieId}")
     public MovieResponse updateMovie(
@@ -54,6 +78,10 @@ public class OwnerMovieController {
                 jwt.getClaim("role")
         );
     }
+    
+    /*
+     * theater owner can delete his movies
+     */
 
     @DeleteMapping("/{movieId}")
     public void deleteMovie(

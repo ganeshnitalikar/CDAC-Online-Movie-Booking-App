@@ -15,26 +15,33 @@ import java.util.List;
 public class PublicMovieController {
 
     private final MovieService movieService;
-
-    // List page
+    
+    /*
+     * get all approved movies 
+     */
     @GetMapping
     public ResponseEntity<List<MovieResponse>> getPublicMovies() {
         return ResponseEntity.ok(movieService.getPublicMovies());
     }
 
-    // Movie details page
+    /*
+     * get movie by its id (movie details page)
+     */
     @GetMapping("/{movieId}")
     public ResponseEntity<MovieResponse> getMovieById(@PathVariable String movieId) {
         return ResponseEntity.ok(movieService.getMovieById(movieId));
     }
     
+    /*
+     * search movie 
+     */
+    
     @GetMapping("/search")
     public ResponseEntity<List<MovieResponse>> searchMovies(
-            @RequestParam String q
+            @RequestParam String query
     ) {
-    	System.out.println("hello");
     	
-        return ResponseEntity.ok(movieService.searchPublicMovies(q));
+        return ResponseEntity.ok(movieService.searchPublicMovies(query));
     }
 
    

@@ -55,7 +55,7 @@ public class BookingServiceImpl implements BookingService {
             throw new RuntimeException("One or more seats do not belong to this show");
         }
 
-        // 🔐 seat lock check (DB level)
+        //  seat lock check
         boolean locked = !bookingRepository.findActiveSeatLocks(
                 show.getId(),
                 request.getSeatIds(),

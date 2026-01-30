@@ -32,14 +32,9 @@ public class ShowServiceImpl implements ShowService {
     public void deleteShow(Long showId, String ownerId) {
     	Show show = showRepository.findById(showId).orElseThrow(()-> new RuntimeException("Show Not Found"));
     	List<Show> shows = showRepository.findByScreenTheatreOwnerId(ownerId);
-    	
-//    	if(!shows.contains(show)) {
-//    		throw new RuntimeException("You Dont Have Permission to delete this show ");
-//    	}
-    	
+    
     	showRepository.delete(show);
-    	
-    	
+
     }
     
     @Override

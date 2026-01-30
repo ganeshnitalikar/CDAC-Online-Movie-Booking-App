@@ -27,6 +27,12 @@ public class OwnerShowController {
 
     private final ScreenService screenService;
     private final ShowService showService;
+    
+    /*
+     * add a new screen 
+     * ROLE - THEATER_OWNER
+     * 
+     */
 
     @PostMapping("/screens")
     public Screen createScreen(
@@ -39,6 +45,10 @@ public class OwnerShowController {
                 jwt.getClaim("role")
         );
     }
+    /*
+     * update a existing screen
+     * ROLE - THEATER_OWNER
+     */
     
     @PutMapping("/screens/{screenId}")
     public void updateScreen(
@@ -52,6 +62,11 @@ public class OwnerShowController {
                 jwt.getSubject()
         );
     }
+    
+    /*
+     * deletes existing screen
+     * fails if screen has scheduled shows
+     */
     @DeleteMapping("/screens/{screenId}")
     public void deleteScreen(
             @PathVariable String screenId,
@@ -62,7 +77,11 @@ public class OwnerShowController {
                 jwt.getSubject()
         );
     }
-
+    
+    /*
+     * get all screens for a particular owner
+     * 
+     */
     @GetMapping("/screens")
     public List<ScreenResponse> getOwnerScreens(
             @AuthenticationPrincipal Jwt jwt
@@ -70,6 +89,9 @@ public class OwnerShowController {
         return screenService.getScreensByOwner(jwt.getSubject());
     }
     
+    /*
+     * get all shows for a owner
+     */
     @GetMapping("/shows")
     public List<OwnerShowResponse> getOwnerShows(
             @AuthenticationPrincipal Jwt jwt
@@ -77,7 +99,9 @@ public class OwnerShowController {
         return showService.getShowsByOwner(jwt.getSubject());
     }
 
-
+    /*
+     * create a new show for a movie , screen
+     */
     @PostMapping("/shows")
     public OwnerShowResponse createShow(
             @Valid @RequestBody CreateShowRequest request,
@@ -89,7 +113,10 @@ public class OwnerShowController {
                 jwt.getClaim("role") 
         );
     }
-    
+    /*
+     * delete a show 
+     * 
+     */
     @DeleteMapping("/shows/{showId}")
     public ResponseEntity<?> deleteShow(
     		@PathVariable Long showId,

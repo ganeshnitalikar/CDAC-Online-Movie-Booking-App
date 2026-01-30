@@ -45,7 +45,6 @@ public class Booking {
     @Column(nullable = false)
     private BookingStatus status;
 
-    // critical for seat lock expiry
     @Column(name = "lock_expiry_time", nullable = false)
     private LocalDateTime lockExpiryTime;
 }

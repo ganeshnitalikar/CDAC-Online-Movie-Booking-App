@@ -18,13 +18,18 @@ import java.util.List;
 public class AdminTheatreController {
 
     private final TheatreService theatreService;
+    
+    /*
+     * admin can create a theatre
+     * NOT USED
+     */
 
     @PostMapping
     public Theatre createTheatre(
             @Valid @RequestBody CreateTheatreRequest request,
             @AuthenticationPrincipal Jwt jwt
     ) {
-        String ownerId = jwt.getSubject(); // ADMIN onboarding theatre
+        String ownerId = jwt.getSubject(); 
         return theatreService.createTheatre(request, ownerId);
     }
 

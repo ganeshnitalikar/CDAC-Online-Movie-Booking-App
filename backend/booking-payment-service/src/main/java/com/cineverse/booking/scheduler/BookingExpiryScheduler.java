@@ -16,7 +16,7 @@ public class BookingExpiryScheduler {
 
     private final BookingRepository bookingRepository;
 
-    @Scheduled(fixedDelay = 60000) // every 1 minute
+    @Scheduled(fixedDelay = 60000) 
     public void expireBookings() {
 
         List<Booking> expiredBookings =

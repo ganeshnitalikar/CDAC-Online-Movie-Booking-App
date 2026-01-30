@@ -19,10 +19,19 @@ public class AdminMovieController {
 
     private final MovieService movieService;
 
+    /*
+     * gets all pending movie 
+     * ROLE - ADMIN
+     */
     @GetMapping("/pending")
     public List<MovieResponse> getPendingMovies() {
         return movieService.getPendingApprovalMovies();
     }
+    
+    /*
+     * admin approves the pending movie 
+     * ROLE - ADMIN
+     */
 
     @PutMapping("/{movieId}/approval")
     public MovieResponse approveMovie(

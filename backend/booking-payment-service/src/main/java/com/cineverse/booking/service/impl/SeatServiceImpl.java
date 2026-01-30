@@ -42,11 +42,11 @@ public class SeatServiceImpl implements SeatService {
             throw new AccessDeniedException("Not your theatre");
         }
 
-        // ❗ Seats should be created ONCE per screen
-        List<Seat> existingSeats = seatRepository.findByScreenId(screen.getId());
-        if (!existingSeats.isEmpty()) {
-            throw new IllegalStateException("Seats already exist for this screen");
-        }
+//        ❗ Seats should be created ONCE per screen
+//        List<Seat> existingSeats = seatRepository.findByScreenId(screen.getId());
+//        if (!existingSeats.isEmpty()) {
+//            throw new IllegalStateException("Seats already exist for this screen");
+//        }
 
         for (CreateSeatRequest.SeatInput input : request.getSeats()) {
 

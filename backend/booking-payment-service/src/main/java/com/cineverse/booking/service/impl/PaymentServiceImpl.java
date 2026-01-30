@@ -50,7 +50,7 @@ public class PaymentServiceImpl implements PaymentService {
                     throw new PaymentException("Payment already initiated");
                 });
 
-        int amount = booking.getSeats().size() * 20000; // ₹200 per seat
+        int amount = booking.getSeats().size() * 20000; 
 
         try {
             JSONObject orderRequest = new JSONObject();
@@ -92,7 +92,7 @@ public class PaymentServiceImpl implements PaymentService {
         Payment payment = paymentRepository.findByRazorpayOrderId(razorpayOrderId)
                 .orElseThrow(() -> new PaymentException("Payment record not found"));
 
-        // idempotency check
+        
         if (payment.getStatus() == PaymentStatus.SUCCESS) {
             return;
         }

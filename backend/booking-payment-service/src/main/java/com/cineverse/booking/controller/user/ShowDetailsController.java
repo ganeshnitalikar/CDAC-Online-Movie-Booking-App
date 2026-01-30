@@ -18,13 +18,7 @@ import org.springframework.web.bind.annotation.*;
 public class ShowDetailsController {
 
     private final ShowService showService;
-    
-//    @GetMapping("/{showId}")
-//    public Map<String, Object> test(@PathVariable Long showId) {
-//        Map<String, Object> map = new HashMap<>();
-//        map.put("id", showId);
-//        return map;
-//    }
+ 
     @GetMapping
     public List<ShowResponse> getShowsByMovie(
             @RequestParam String movieId
