@@ -9,7 +9,7 @@ import axiosBookingInstance from "../config/axiosBookingInstance";
 /**
  * Get all screens for the current owner's theatre
  * GET /owner/screens
- * @returns {Promise<Array>} Array of screen objects
+ *  return Array of screen objects
  */
 export const getOwnerScreens = async () => {
   try {
@@ -40,8 +40,8 @@ export const getOwnerScreens = async () => {
 /**
  * Get a specific screen by ID
  * GET /owner/screens/{screenId}
- * @param {string|number} screenId - Screen ID
- * @returns {Promise<Object>} Screen object
+ *  screenId - Screen ID
+ *  return Screen object
  */
 export const getOwnerScreenById = async (screenId) => {
   if (!screenId) {
@@ -79,11 +79,11 @@ export const getOwnerScreenById = async (screenId) => {
 /**
  * Create a new screen
  * POST /owner/screens
- * @param {Object} payload - Screen data
- * @param {string} payload.name - Screen name
- * @param {number} payload.capacity - Screen capacity (number of seats)
- * @param {Array<string>} payload.features - Screen features (comma-separated or string)
- * @returns {Promise<Object>} Created screen object
+ *  payload - Screen data
+ *  payload.name - Screen name
+ *  payload.capacity - Screen capacity (number of seats)
+ *  payload.features - Screen features (comma-separated or string)
+ *  return Created screen object
  */
 export const createScreen = async (payload) => {
   if (!payload) {
@@ -131,9 +131,9 @@ export const createScreen = async (payload) => {
 /**
  * Update an existing screen
  * PUT /owner/screens/{screenId}
- * @param {string|number} screenId - Screen ID to update
- * @param {Object} payload - Updated screen data (partial update supported)
- * @returns {Promise<Object>} Updated screen object
+ *  screenId - Screen ID to update
+ *  payload - Updated screen data (partial update supported)
+ *  return Updated screen object
  */
 export const updateScreen = async (screenId, payload) => {
   if (!screenId) {
@@ -192,8 +192,8 @@ export const updateScreen = async (screenId, payload) => {
 /**
  * Delete a screen
  * DELETE /owner/screens/{screenId}
- * @param {string|number} screenId - Screen ID to delete
- * @returns {Promise<Object>} Success response
+ *  screenId - Screen ID to delete
+ *  return Success response
  */
 export const deleteScreen = async (screenId) => {
   if (!screenId) {
@@ -231,7 +231,7 @@ export const deleteScreen = async (screenId) => {
 /**
  * Get owner's theatre information
  * GET /owner/theatres
- * @returns {Promise<Object>} Theatre object with id (returns first theatre if array)
+ *  return Theatre object with id (returns first theatre if array)
  */
 export const getOwnerTheatre = async () => {
   try {
@@ -263,7 +263,7 @@ export const getOwnerTheatre = async () => {
 /**
  * Get all owner's theatres
  * GET /owner/theatres
- * @returns {Promise<Array>} Array of theatre objects
+ *  return Array of theatre objects
  */
 export const getOwnerTheatres = async () => {
   try {
@@ -294,11 +294,11 @@ export const getOwnerTheatres = async () => {
 /**
  * Create a new theatre for the owner
  * POST /owner/theatres
- * @param {Object} payload - Theatre data
- * @param {string} payload.name - Theatre name (required)
- * @param {string} payload.city - Theatre city
- * @param {string} payload.phone - Theatre phone number
- * @returns {Promise<Object>} Created theatre object
+ *  payload - Theatre data
+ *  payload.name - Theatre name (required)
+ *  payload.city - Theatre city
+ *  payload.phone - Theatre phone number
+ *  return Created theatre object
  */
 export const createOwnerTheatre = async (payload) => {
   if (!payload) {
@@ -345,12 +345,12 @@ export const createOwnerTheatre = async (payload) => {
 /**
  * Create a new screen for a specific theatre
  * POST /owner/theatres/{theatreId}/screens
- * @param {string|number} theatreId - Theatre ID
- * @param {Object} payload - Screen data
- * @param {string} payload.name - Screen name (required)
- * @param {number} payload.normalPrice - Normal seat price (required, > 0)
- * @param {number} payload.premiumPrice - Premium seat price (required, > 0)
- * @returns {Promise<Object>} Created screen object
+ *  theatreId - Theatre ID
+ *  payload - Screen data
+ *  payload.name - Screen name (required)
+ *  payload.normalPrice - Normal seat price (required, > 0)
+ *  payload.premiumPrice - Premium seat price (required, > 0)
+ *  return Created screen object
  */
 export const createScreenForTheatre = async (theatreId, payload) => {
   if (!theatreId) {

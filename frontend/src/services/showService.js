@@ -9,8 +9,8 @@ import axiosBookingInstance from "../config/axiosBookingInstance";
 /**
  * Get shows by city
  * GET /shows?city={city}
- * @param {string} city - City name
- * @returns {Promise<Array>} List of shows
+ *  city - City name
+ *  return List of shows
  */
 export const getShowsByCity = async (city) => {
   if (!city) {
@@ -37,8 +37,8 @@ export const getShowsByCity = async (city) => {
 /**
  * Get shows for a specific screen
  * GET /screens/{screenId}/shows
- * @param {string|number} screenId - Screen ID
- * @returns {Promise<Array>} Array of show objects
+ *  screenId - Screen ID
+ *  return Array of show objects
  */
 export const getShowsByScreen = async (screenId) => {
   if (!screenId) {
@@ -60,12 +60,6 @@ export const getShowsByScreen = async (screenId) => {
   }
 };
 
-/**
- * Get show details by ID
- * GET /shows/{showId}
- * @param {string|number} showId - Show ID
- * @returns {Promise<Object>} Show object
- */
 export const getShowById = async (showId) => {
   if (!showId) {
     throw new Error("Show ID is required");
@@ -89,8 +83,8 @@ export const getShowById = async (showId) => {
 /**
  * Get seats for a specific show
  * GET /shows/{showId}/seats
- * @param {string|number} showId - Show ID
- * @returns {Promise<Array>} Array of seat objects
+ *  showId - Show ID
+ *  return Array of seat objects
  */
 export const getSeatsByShow = async (showId) => {
   if (!showId) {

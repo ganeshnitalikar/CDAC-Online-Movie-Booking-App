@@ -10,7 +10,7 @@ import axiosMovieInstance from "../config/axiosMovieInstance";
 /**
  * Get all movies owned by the current owner
  * GET /api/owner/movies
- * @returns {Promise<Array>} Array of movie objects owned by the owner
+  *  return Array of movie objects owned by the owner
  */
 export const getOwnerMovies = async () => {
   try {
@@ -40,8 +40,8 @@ export const getOwnerMovies = async () => {
 /**
  * Get a specific movie by ID (for editing)
  * GET /api/owner/movies/{movieId}
- * @param {string|number} movieId - Movie ID
- * @returns {Promise<Object>} Movie object
+ *  movieId - Movie ID
+ *  return Movie object
  */
 export const getOwnerMovieById = async (movieId) => {
   if (!movieId) {
@@ -74,18 +74,18 @@ export const getOwnerMovieById = async (movieId) => {
 /**
  * Create a new movie
  * POST /api/owner/movies
- * @param {Object} payload - Movie data
- * @param {string} payload.title - Movie title
- * @param {string} payload.description - Movie description
- * @param {Array<string>} payload.genre - Array of genres
- * @param {string} payload.releaseDate - Release date (ISO format)
- * @param {number} payload.durationMinutes - Duration in minutes
- * @param {string} payload.language - Language
- * @param {string} payload.certificate - Certificate rating
- * @param {string} payload.posterUrl - Poster image URL
- * @param {string} payload.backdropUrl - Backdrop image URL
- * @param {number} payload.rating - Rating (optional)
- * @returns {Promise<Object>} Created movie object
+ *  payload - Movie data
+ *  payload.title - Movie title
+ *  payload.description - Movie description
+ *  payload.genre - Array of genres
+ *  payload.releaseDate - Release date (ISO format)
+ *  payload.durationMinutes - Duration in minutes
+ *  payload.language - Language
+ *  payload.certificate - Certificate rating
+ *  payload.posterUrl - Poster image URL
+ *  payload.backdropUrl - Backdrop image URL
+ *  payload.rating - Rating (optional)
+ *  return Created movie object
  */
 export const createMovie = async (payload) => {
   if (!payload) {
@@ -120,9 +120,9 @@ export const createMovie = async (payload) => {
 /**
  * Update an existing movie
  * PUT /api/owner/movies/{movieId}
- * @param {string|number} movieId - Movie ID to update
- * @param {Object} payload - Updated movie data (partial update supported)
- * @returns {Promise<Object>} Updated movie object
+ *  movieId - Movie ID to update
+ *  payload - Updated movie data (partial update supported)
+ *  return Updated movie object
  */
 export const updateMovie = async (movieId, payload) => {
   if (!movieId) {
@@ -180,8 +180,8 @@ export const updateMovie = async (movieId, payload) => {
 /**
  * Delete a movie
  * DELETE /api/owner/movies/{movieId}
- * @param {string|number} movieId - Movie ID to delete
- * @returns {Promise<Object>} Success response
+ *  movieId - Movie ID to delete
+ *  return Success response
  */
 export const deleteMovie = async (movieId) => {
   if (!movieId) {

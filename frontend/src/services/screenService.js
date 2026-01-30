@@ -9,8 +9,8 @@ import axiosBookingInstance from "../config/axiosBookingInstance";
 /**
  * Get screens for a specific theatre
  * GET /theatres/{theatreId}/screens
- * @param {string|number} theatreId - Theatre ID
- * @returns {Promise<Array>} Array of screen objects
+ *  theatreId - Theatre ID
+ *  return Array of screen objects
  */
 export const getScreensByTheatre = async (theatreId) => {
   if (!theatreId) {

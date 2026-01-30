@@ -5,10 +5,7 @@ import { API_CONFIG } from "../config/api";
 export const getUserProfile = async () => {
   const res = await axiosInstance.get(API_CONFIG.ENDPOINTS.AUTH.GET_PROFILE);
 
-  // backend wrapper: result.createResult(null, users[0])
   const user = res.data.data;
-console.log("user profile",user);
-  // map backend fields → frontend fields
   return {
     id: user.sub,
     full_name: user.full_name,
@@ -20,7 +17,6 @@ console.log("user profile",user);
 };
 
 export const updateUserProfile = async (formData) => {
-	//console.log(formData);
 	const token=localStorage.getItem("authToken");
   const payload = {
     name: formData.name,
