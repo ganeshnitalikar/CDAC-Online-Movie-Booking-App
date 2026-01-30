@@ -41,9 +41,7 @@ const UserProfile = () => {
     message: '',
     severity: 'success',
   });
- // =========================
-  // FETCH PROFILE
-  // =========================
+
   const fetchProfile = async () => {
     setLoading(true);
     try {
@@ -69,9 +67,6 @@ const UserProfile = () => {
     fetchProfile();
   }, []);
 
-  // =========================
-  // HANDLERS
-  // =========================
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
@@ -114,9 +109,6 @@ const UserProfile = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
   };
 
-  // =========================
-  // LOADING UI
-  // =========================
   if (loading) {
     return (
       <Box sx={{ py: 4 }}>
@@ -128,9 +120,6 @@ const UserProfile = () => {
     );
   }
 
-  // =========================
-  // MAIN UI
-  // =========================
   return (
     <Box sx={{ py: 4 }}>
       <Container maxWidth="md">

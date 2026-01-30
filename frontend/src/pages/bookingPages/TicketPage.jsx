@@ -32,50 +32,51 @@ const TicketPage = () => {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
 	const [polling, setPolling] = useState(true);
+	const fetchTicket = async () => {
+		try {
+			const ticketData = await getTicket(bookingId);
+			setTicket(ticketData);
+			// if (mounted) {
+			// 	setTicket(ticketData);
+			// 	// Stop polling if booking is confirmed
+			// 	if (ticketData.status === 'CONFIRMED' || ticketData.bookingStatus === 'CONFIRMED') {
+			// 		setPolling(false);
+			// 		setLoading(false);
+			// 	}
+			// }
+		} catch (err) {
+			console.error('Error fetching ticket:', err);
+			// if (mounted) {
+			// 	setError(err.message || 'Failed to load ticket');
+			// 	setLoading(false);
+			// 	setPolling(false);
+			// }
+		}
+	};
 
 	useEffect(() => {
-		let pollInterval;
-		let mounted = true;
+		// let pollInterval;
+		// let mounted = true;
 
-		const fetchTicket = async () => {
-			try {
-				const ticketData = await getTicket(bookingId);
-				if (mounted) {
-					setTicket(ticketData);
-					// Stop polling if booking is confirmed
-					if (ticketData.status === 'CONFIRMED' || ticketData.bookingStatus === 'CONFIRMED') {
-						setPolling(false);
-						setLoading(false);
-					}
-				}
-			} catch (err) {
-				console.error('Error fetching ticket:', err);
-				if (mounted) {
-					setError(err.message || 'Failed to load ticket');
-					setLoading(false);
-					setPolling(false);
-				}
-			}
-		};
+		
 
-		// Initial fetch
 		fetchTicket();
-
+		setLoading(false);
 		// Poll every 3 seconds if booking is not confirmed
-		if (polling) {
-			pollInterval = setInterval(() => {
-				if (mounted && polling) {
-					fetchTicket();
-				}
-			}, 3000);
-		}
+		// if (polling) {
+		// 	pollInterval = setInterval(() => {
+		// 		if (mounted && polling) {
+		// 			fetchTicket();
+		// 		}
+		// 	}, 3000);
+		// }
 
-		return () => {
-			mounted = false;
-			if (pollInterval) {
-				clearInterval(pollInterval);
-			}
-		};
+		// return () => {
+		// 	mounted = false;
+		// 	if (pollInterval) {
+		// 		clearInterval(pollInterval);
+		// 	}
+		// };
 	}, [bookingId, polling]);
 
 	const formatDateTime = (dateString) => {
@@ -150,7 +151,7 @@ const TicketPage = () => {
 					</Alert>
 				)}
 
-				{loading || !isConfirmed ? (
+				{loading  ? (
 					<Paper
 						elevation={0}
 						sx={{
@@ -181,7 +182,7 @@ const TicketPage = () => {
 							borderRadius: 3,
 							border: '2px solid',
 							borderColor: 'primary.main',
-							background: 'linear-gradient(to bottom, #fff, #f5f5f5)',
+							background: 'linear-gradient(to bottom,rgb(237, 76, 76) ,rgb(231, 0, 0))',
 						}}
 					>
 						{/* Ticket Header */}
@@ -219,7 +220,7 @@ const TicketPage = () => {
 								<InfoRow
 									icon={TimeIcon}
 									label="Show Time"
-									value={formatDateTime(ticket.showTime || ticket.show?.showTime)}
+									value={formatDateTime(ticket.showStartTime || ticket.show?.showTime)}
 								/>
 							</Grid>
 							<Grid item xs={12} md={6}>
@@ -227,9 +228,8 @@ const TicketPage = () => {
 									icon={SeatIcon}
 									label="Seats"
 									value={
-										ticket.seats
-											?.map((s) => `${s.row}${s.number}`)
-											.join(', ') || ticket.seatIds?.join(', ') || 'N/A'
+										ticket.seats.join(" , ")
+											 || 'N/A'
 									}
 								/>
 								{ticket.totalAmount && (

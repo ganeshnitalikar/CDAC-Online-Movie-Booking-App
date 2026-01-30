@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -14,6 +15,6 @@ public class TicketResponse {
     private String movieId;
     private String theatreName;
     private String screenName;
-    private Set<String> seats;
+    private List<String> seats;
     private LocalDateTime showStartTime;
 }

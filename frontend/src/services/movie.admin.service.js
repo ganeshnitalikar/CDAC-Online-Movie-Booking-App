@@ -10,7 +10,7 @@ import axiosMovieInstance from "../config/axiosMovieInstance";
 /**
  * Get list of movies pending approval
  * GET /api/admin/movies/pending
- * @returns {Promise<Array>} Array of pending movie objects
+ *  return Array of pending movie objects
  */
 export const getPendingMovies = async () => {
   try {
@@ -41,11 +41,11 @@ export const getPendingMovies = async () => {
 /**
  * Approve or reject a movie
  * PUT /api/admin/movies/{movieId}/approval
- * @param {string|number} movieId - Movie ID
- * @param {Object} approvalData - Approval data
- * @param {boolean} approvalData.approved - true to approve, false to reject
- * @param {string} [approvalData.remarks] - Optional remarks/notes
- * @returns {Promise<Object>} Updated movie object
+ *  movieId - Movie ID
+ *  approvalData - Approval data
+ *  approvalData.approved - true to approve, false to reject
+ *  approvalData.remarks - Optional remarks/notes
+ *  return Updated movie object
  */
 export const approveMovie = async (movieId, approvalData) => {
   if (!movieId) {

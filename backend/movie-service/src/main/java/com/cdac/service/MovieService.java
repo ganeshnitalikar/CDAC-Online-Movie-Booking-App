@@ -56,5 +56,7 @@ public interface MovieService {
     List<MovieResponse> getPendingApprovalMovies();
     
     List<MovieResponse> searchPublicMovies(String keyword);
+
+	List<MovieResponse> getOwnerMovies(String ownerId);
     
 }

@@ -22,9 +22,9 @@ import { createOwner } from '../../services/admin';
 
 const AddTheatreOwnerModal = ({ open, onClose, onSuccess }) => {
 	const [formData, setFormData] = useState({
-		name: '',
+		full_name: '',
 		email: '',
-		phone: '',
+		phone_number: '',
 		password: '',
 		confirmPassword: '',
 		city: '',
@@ -55,9 +55,9 @@ const AddTheatreOwnerModal = ({ open, onClose, onSuccess }) => {
 	const validateForm = () => {
 		const newErrors = {};
 
-		if (!formData.name.trim()) {
+		if (!formData.full_name.trim()) {
 			newErrors.name = 'Name is required';
-		} else if (formData.name.trim().length < 3) {
+		} else if (formData.full_name.trim().length < 3) {
 			newErrors.name = 'Name must be at least 3 characters';
 		}
 
@@ -67,9 +67,9 @@ const AddTheatreOwnerModal = ({ open, onClose, onSuccess }) => {
 			newErrors.email = 'Invalid email format';
 		}
 
-		if (!formData.phone.trim()) {
+		if (!formData.phone_number.trim()) {
 			newErrors.phone = 'Phone number is required';
-		} else if (!/^[0-9]{10}$/.test(formData.phone.replace(/\D/g, ''))) {
+		} else if (!/^[0-9]{10}$/.test(formData.phone_number.replace(/\D/g, ''))) {
 			newErrors.phone = 'Phone number must be 10 digits';
 		}
 
@@ -103,9 +103,9 @@ const AddTheatreOwnerModal = ({ open, onClose, onSuccess }) => {
 
 		try {
 			const response = await createOwner({
-				name: formData.name.trim(),
+				full_name: formData.full_name.trim(),
 				email: formData.email.trim(),
-				phone: formData.phone.trim(),
+				phone_number: formData.phone_number.trim(),
 				password: formData.password,
 				city: formData.city,
 			});
@@ -114,9 +114,9 @@ const AddTheatreOwnerModal = ({ open, onClose, onSuccess }) => {
 				setSuccessMessage('Theatre owner created successfully!');
 				// Reset form
 				setFormData({
-					name: '',
+					full_name: '',
 					email: '',
-					phone: '',
+					phone_number: '',
 					password: '',
 					confirmPassword: '',
 					city: '',
@@ -141,9 +141,9 @@ const AddTheatreOwnerModal = ({ open, onClose, onSuccess }) => {
 	const handleClose = () => {
 		if (!loading) {
 			setFormData({
-				name: '',
+				full_name: '',
 				email: '',
-				phone: '',
+				phone_number: '',
 				password: '',
 				confirmPassword: '',
 				city: '',
@@ -207,8 +207,8 @@ const AddTheatreOwnerModal = ({ open, onClose, onSuccess }) => {
 
 					<TextField
 						label="Full Name"
-						name="name"
-						value={formData.name}
+						name="full_name"
+						value={formData.full_name}
 						onChange={handleInputChange}
 						fullWidth
 						error={!!errors.name}
@@ -234,8 +234,8 @@ const AddTheatreOwnerModal = ({ open, onClose, onSuccess }) => {
 
 					<TextField
 						label="Phone Number"
-						name="phone"
-						value={formData.phone}
+						name="phone_number"
+						value={formData.phone_number}
 						onChange={handleInputChange}
 						fullWidth
 						error={!!errors.phone}

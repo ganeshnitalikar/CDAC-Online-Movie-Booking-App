@@ -9,13 +9,14 @@ import axiosPublicInstance from "../config/axiosPublicInstance";
 /**
  * Get list of approved and active movies
  * GET /api/public/movies
- * @returns {Promise<Array>} Array of movie objects
+ *  return Array of movie objects
  */
 export const getPublicMovies = async () => {
   try {
     const response = await axiosPublicInstance.get("/api/public/movies");
     console.log(response.data);
     console.log("response " , response);
+    
     return response.data || [];
   } catch (error) {
     console.error("Error fetching public movies:", error);
@@ -29,8 +30,8 @@ export const getPublicMovies = async () => {
 /**
  * Get movie details by ID
  * GET /api/public/movies/{movieId}
- * @param {string|number} movieId - Movie ID
- * @returns {Promise<Object>} Movie object with full details
+ *  movieId - Movie ID
+ *  return Movie object with full details
  */
 export const getMovieById = async (movieId) => {
   if (!movieId) {

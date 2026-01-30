@@ -117,9 +117,21 @@ const SeatSelectionPage = () => {
 			// Ensure seatIds is always an array
 			const seatIdsArray = Array.isArray(selectedSeats) ? selectedSeats : [selectedSeats];
 			const bookingData = await initiateBooking(Number(showId), seatIdsArray);
-			// After initiating booking, navigate to payment page
-			// Do NOT go to confirmation or ticket page yet
-			navigate(`/booking/${bookingData.bookingId}/payment`);
+
+			// Prepare summary data for confirmation page
+			const totalAmount = selectedSeatDetails.reduce(
+				(total, seat) => total + getSeatPrice(seat),
+				0
+			);
+
+			// After initiating booking, navigate to confirmation page first
+			navigate(`/booking/${bookingData.bookingId}/confirm`, {
+				state: {
+					show,
+					selectedSeats: selectedSeatDetails,
+					totalAmount,
+				},
+			});
 		} catch (err) {
 			console.error('Error initiating booking:', err);
 			if (err.message.includes('409') || err.message.includes('already locked')) {

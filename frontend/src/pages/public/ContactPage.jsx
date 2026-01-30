@@ -38,12 +38,12 @@ const ContactPage = () => {
 						<Paper elevation={0} sx={{ p: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider', height: '100%' }}>
 							<Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>Support</Typography>
 							<Stack spacing={1} sx={{ mb: 3 }}>
-								<Typography>Email: support@moviehub.com</Typography>
-								<Typography>Phone: +1 (555) 123-4567</Typography>
+								<Typography>Email: cineversehub1@gmail.com</Typography>
+								<Typography>Phone: +91 8830109545</Typography>
 								<Typography>Hours: Mon - Sun, 9:00 AM - 9:00 PM</Typography>
 							</Stack>
 							<Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>Head Office</Typography>
-							<Typography>123 Cinema Street, Movie City, MC 12345</Typography>
+							<Typography>Hinjewadi Tech Park, Pune 411057</Typography>
 							<Box sx={{ mt: 2, height: 200, borderRadius: 2, background: 'url(https://images.unsplash.com/photo-1481437642641-2f0ae875f836?q=80&w=1200&auto=format&fit=crop) center/cover' }} />
 						</Paper>
 					</Grid>

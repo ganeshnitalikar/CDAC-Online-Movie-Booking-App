@@ -1,17 +1,5 @@
 import axiosBookingInstance from "../config/axiosBookingInstance";
 
-/**
- * Theatre Service
- * Handles theatre-related API calls
- * Base URL: http://localhost:8080
- */
-
-/**
- * Get theatres showing a specific movie
- * GET /theatres?movieId={movieId}
- * @param {string|number} movieId - Movie ID
- * @returns {Promise<Array>} Array of theatre objects
- */
 export const getTheatresByMovie = async (movieId) => {
   if (!movieId) {
     throw new Error("Movie ID is required");
@@ -34,11 +22,6 @@ export const getTheatresByMovie = async (movieId) => {
   }
 };
 
-/**
- * Get all theatres (admin)
- * GET /admin/theatres
- * @returns {Promise<Array>} Array of theatre objects
- */
 export const getAllTheatres = async () => {
   try {
     const token = localStorage.getItem("token");

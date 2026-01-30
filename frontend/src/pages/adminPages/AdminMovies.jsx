@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
 	Box,
 	Container,
@@ -42,11 +42,9 @@ import {
 	FilterList as FilterListIcon,
 	Movie as MovieIcon,
 } from '@mui/icons-material';
-import { getAdminMovies, updateMovieStatus } from '../../services/admin';
-
 const AdminMovies = () => {
 	const [movies, setMovies] = useState([]);
-	const [loading, setLoading] = useState(true);
+	const [loading, setLoading] = useState(false);
 	const [page, setPage] = useState(0);
 	const [rowsPerPage, setRowsPerPage] = useState(10);
 	const [total, setTotal] = useState(0);
@@ -56,35 +54,6 @@ const AdminMovies = () => {
 	const [selectedMovie, setSelectedMovie] = useState(null);
 	const [actionDialogOpen, setActionDialogOpen] = useState(false);
 	const [actionType, setActionType] = useState(null);
-
-	const fetchMovies = async () => {
-		setLoading(true);
-		try {
-			const response = await getAdminMovies(page + 1, rowsPerPage, search, statusFilter);
-			setMovies(response.movies);
-			setTotal(response.total);
-		} catch (error) {
-			console.error('Error fetching movies:', error);
-		} finally {
-			setLoading(false);
-		}
-	};
-
-	useEffect(() => {
-		fetchMovies();
-	}, [page, rowsPerPage, statusFilter]);
-
-	useEffect(() => {
-		const debounceTimer = setTimeout(() => {
-			if (page === 0) {
-				fetchMovies();
-			} else {
-				setPage(0);
-			}
-		}, 500);
-
-		return () => clearTimeout(debounceTimer);
-	}, [search]);
 
 	const handleChangePage = (event, newPage) => {
 		setPage(newPage);
@@ -105,15 +74,9 @@ const AdminMovies = () => {
 		setSelectedMovie(null);
 	};
 
-	const handleStatusChange = async (movieId, newStatus) => {
-		try {
-			await updateMovieStatus(movieId, newStatus);
-			fetchMovies();
-			handleMenuClose();
-			setActionDialogOpen(false);
-		} catch (error) {
-			console.error('Error updating movie status:', error);
-		}
+	const handleStatusChange = (_movieId, _newStatus) => {
+		handleMenuClose();
+		setActionDialogOpen(false);
 	};
 
 	const handleActionClick = (type) => {
@@ -162,7 +125,7 @@ const AdminMovies = () => {
 					<Button
 						variant="outlined"
 						startIcon={<RefreshIcon />}
-						onClick={fetchMovies}
+						disabled
 						sx={{ textTransform: 'none' }}
 					>
 						Refresh
@@ -318,7 +281,7 @@ const AdminMovies = () => {
 											<TableCell><Skeleton height={40} width={40} /></TableCell>
 										</TableRow>
 									))
-								) : movies.length > 0 ? (
+								) : !loading && movies.length > 0 ? (
 									movies.map((movie) => (
 										<TableRow key={movie.id} hover>
 											<TableCell>
