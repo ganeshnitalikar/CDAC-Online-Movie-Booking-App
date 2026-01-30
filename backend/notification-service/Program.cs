@@ -1,4 +1,4 @@
-using notification_service.Services;
+﻿using notification_service.Services;
 using Steeltoe.Discovery.Client;
 
 namespace notification_service
@@ -15,8 +15,19 @@ namespace notification_service
             // Email service
             builder.Services.AddScoped<IEmailService, EmailService>();
 
-            // ?? Eureka registration
+            // Eureka registration
             builder.Services.AddDiscoveryClient(builder.Configuration);
+
+            // ✅ ADD CORS SERVICE
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("FrontendPolicy", policy =>
+                {
+                    policy.WithOrigins("http://localhost:5173")
+                          .AllowAnyHeader()
+                          .AllowAnyMethod();
+                });
+            });
 
             var app = builder.Build();
 
@@ -25,12 +36,14 @@ namespace notification_service
                 app.UseDeveloperExceptionPage();
             }
 
+            // ✅ ENABLE CORS (must be before auth/controllers)
+            app.UseCors("FrontendPolicy");
+
             app.UseHttpsRedirection();
             app.UseRouting();
             app.UseAuthorization();
 
-            // ?? Eureka middleware (AVAILABLE in 3.x)
-          //  app.UseDiscoveryClient();
+            // app.UseDiscoveryClient();
 
             app.MapControllers();
             app.Run();
