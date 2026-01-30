@@ -1,5 +1,6 @@
 package com.cineverse.booking.dto.response;
 
+import com.cineverse.booking.entity.SeatStatus;
 import com.cineverse.booking.entity.SeatType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,4 +14,5 @@ public class SeatResponse {
     private String seatNumber;
     private String seatLabel;
     private SeatType type;
+    private SeatStatus status; 
 }

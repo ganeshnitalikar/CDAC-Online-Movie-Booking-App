@@ -1,0 +1,18 @@
+[
+  {
+    "ContainingType": "notification_service.Controllers.NotificationController",
+    "Method": "SendBookingSuccessEmail",
+    "RelativePath": "api/notification/booking-success",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "notification_service.Models.EmailRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  }
+]

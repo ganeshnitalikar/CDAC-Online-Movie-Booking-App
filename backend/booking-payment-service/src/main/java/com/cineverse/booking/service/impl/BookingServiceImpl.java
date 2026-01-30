@@ -66,6 +66,18 @@ public class BookingServiceImpl implements BookingService {
             throw new SeatAlreadyLockedException("One or more seats already locked");
         }
 
+        boolean alreadyBooked =
+                !bookingRepository.findConfirmedSeatBookings(
+                        show.getId(),
+                        request.getSeatIds()
+                ).isEmpty();
+
+        if (alreadyBooked) {
+            throw new SeatAlreadyLockedException(
+                "One or more seats are already booked"
+            );
+        }
+        
         Booking booking = new Booking();
         booking.setUserId(userId);
         booking.setShow(show);
@@ -94,6 +106,7 @@ public class BookingServiceImpl implements BookingService {
 
         return response;
     }
+
 
     @Override
     public TicketResponse getTicket(Long bookingId, String userId) {

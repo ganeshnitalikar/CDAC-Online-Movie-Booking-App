@@ -99,6 +99,7 @@ export const getSeatsByShow = async (showId) => {
 
   try {
     const response = await axiosBookingInstance.get(`/shows/${showId}/seats`);
+    console.log("response", response.data);
     return response.data || [];
   } catch (error) {
     console.error("Error fetching seats:", error);
