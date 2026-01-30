@@ -16,6 +16,7 @@ export const getPublicMovies = async () => {
     const response = await axiosPublicInstance.get("/api/public/movies");
     console.log(response.data);
     console.log("response " , response);
+    
     return response.data || [];
   } catch (error) {
     console.error("Error fetching public movies:", error);

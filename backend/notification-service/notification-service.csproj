@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="appsettings.Development %281%29.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Steeltoe.Discovery.Eureka" Version="3.2.7" />
   </ItemGroup>
 

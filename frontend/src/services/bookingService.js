@@ -1,5 +1,6 @@
 import axiosBookingInstance from "../config/axiosBookingInstance";
-
+import notificationApi from "../config/notificationApi";
+import { getMovieById } from "./movie.public.service";
 /**
  * Booking Service
  * Handles booking-related API calls
@@ -61,6 +62,7 @@ export const initiateBooking = async (showId, seatIds) => {
  * @returns {Promise<Object>} Ticket details
  */
 export const getTicket = async (bookingId) => {
+  
   if (!bookingId) {
     throw new Error("Booking ID is required");
   }
@@ -70,8 +72,39 @@ export const getTicket = async (bookingId) => {
     if (!token) {
       throw new Error("Please login to view ticket");
     }
-
+    
     const response = await axiosBookingInstance.get(`booking/user/bookings/${bookingId}/ticket`);
+     const ticket = response.data;
+   const movie = await getMovieById(ticket.movieId);
+   console.log(movie.title)
+   console.log(response.data)
+    
+  
+   const authUser = JSON.parse(localStorage.getItem("authUser"));
+   const formattedShowTime = new Date(ticket.showStartTime).toLocaleString("en-IN", {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+    // Prepare notification body
+    const notificationBody = {
+  toEmail: authUser?.email,
+  userName: authUser?.name,
+  movieName: movie.title, // if movieName not in response
+  showTime: formattedShowTime,
+  seats: ticket.seats.join(", "),
+  bookingId: ticket.bookingId.toString(),
+    };
+   
+    // Call notification service (don't block UI)
+    notificationApi
+      .post("/api/notification/booking-success", notificationBody)
+      .then(() => console.log("Notification sent successfully"))
+      .catch((err) => console.error("Notification failed:", err));
+    console.log(response.data);
+                 
     return response.data;
   } catch (error) {
     console.error("Error fetching ticket:", error);
