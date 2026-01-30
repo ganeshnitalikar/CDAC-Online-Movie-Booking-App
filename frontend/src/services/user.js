@@ -1,22 +1,4 @@
-// Mock user services for dashboard, bookings, profile, and payments
-// Replace with real API calls later
 
-// export const getUserProfile = async () => {
-// 	await new Promise(r => setTimeout(r, 250));
-// 	return {
-// 		id: 1,
-// 		name: 'MOCK USER',
-// 		email: 'user@moviehub.com',
-// 		phone: '+1 (555) 123-4567',
-// 		role: 'user',
-// 		location: 'Mumbai'
-// 	}
-// }
-
-// export const updateUserProfile = async (payload) => {
-// 	await new Promise(r => setTimeout(r, 400));
-// 	return { success: true, user: { ...payload } }
-// }
 
 import axiosInstance from "../config/axiosInstance";
 import { API_CONFIG } from "../config/api";
@@ -25,31 +7,18 @@ export const getUserProfile = async () => {
 
   // backend wrapper: result.createResult(null, users[0])
   const user = res.data.data;
-
+console.log("user profile",user);
   // map backend fields → frontend fields
   return {
     id: user.sub,
-    name: user.full_name,
+    full_name: user.full_name,
     email: user.email,
-    phone: user.phone_number,
-    location: user.city,
+    phone_number: user.phone_number,
+    city: user.city,
     role: user.role,
   };
 };
 
-/**
- * UPDATE USER PROFILE
- */
-// export const updateUserProfile = async (payload) => {
-//   const res = await axiosInstance.put('/user/update-profile', {
-//     full_name: payload.name,
-//     email: payload.email,
-//     phone_number: payload.phone,
-//     city: payload.location,
-//   });
-
-//   return res.data;
-// };
 export const updateUserProfile = async (formData) => {
 	//console.log(formData);
 	const token=localStorage.getItem("authToken");

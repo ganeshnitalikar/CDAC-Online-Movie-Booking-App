@@ -177,7 +177,8 @@ const login = async (req, res) => {
 
 const updateProfile = (req, res) => {
   const { name, phone , city } = req.body;
-  const userId = req.user.user_id; // from auth middleware
+  const userId = req.user.sub; 
+  console.log("User Id " , userId)
  
   if (!name && !phone && !city) {
     return res.status(400).send(
@@ -426,18 +427,16 @@ const getProfile = (req, res) => {
       result.createResult("Invalid or expired token")
     );
   }
-
   pool.query(
     `SELECT user_id, full_name, email, phone_number, city, role
      FROM users WHERE user_id = ? AND is_active = 1`,
-    [decoded.user_id],
+    [decoded.sub],
     (err, users) => {
       if (err) {
         return res.status(500).send(
           result.createResult("Database error")
         );
       }
-
       if (!users.length) {
         return res.status(404).send(
           result.createResult("User not found")

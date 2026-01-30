@@ -9,7 +9,7 @@ const result = require("../utils/result");
  
 const addTheaterOwner = async (req, res) => {
   const { full_name, email, password, phone_number, city } = req.body;
-
+  console.log(req.body);
   //  Validation
   if (!full_name || !email || !password) {
     return res.status(400).send(

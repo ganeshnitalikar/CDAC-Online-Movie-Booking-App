@@ -499,20 +499,18 @@ const OwnerProfile = () => {
     const loadProfile = async () => {
       try {
         const backendUser = await getUserProfile();
-
+        console.log("user profile",backendUser); 
         const profileData = {
-          name: backendUser.name,
+          full_name: backendUser.full_name,
           email: backendUser.email,
-          phone: backendUser.phone || '',
-          location: backendUser.location || '',
-          theaterName: 'Grand Cinema Multiplex', 
-          address: '123 Cinema Street, Mumbai',  
+          phone_number: backendUser.phone_number || '',
+          city: backendUser.city || '',
         };
 
         setProfile(profileData);
         setFormData({
-          phone: profileData.phone,
-          location: profileData.location,
+          phone: profileData.phone_number,
+          location: profileData.city,
         });
       } catch (err) {
         console.error(err);
@@ -534,8 +532,8 @@ const OwnerProfile = () => {
 
       setProfile((prev) => ({
         ...prev,
-        phone: formData.phone,
-        location: formData.location,
+        phone_number: formData.phone,
+        city: formData.location,
       }));
 
       setEditing(false);
@@ -547,8 +545,8 @@ const OwnerProfile = () => {
 
   const handleCancel = () => {
     setFormData({
-      phone: profile.phone,
-      location: profile.location,
+      phone_number: profile.phone_number,
+      city: profile.city,
     });
     setEditing(false);
   };
@@ -602,10 +600,10 @@ const OwnerProfile = () => {
           {/* AVATAR */}
           <Stack spacing={3} alignItems="center" sx={{ mb: 4 }}>
             <Avatar sx={{ width: 120, height: 120, bgcolor: 'primary.main', fontSize: '3rem' }}>
-              {profile.name?.charAt(0)?.toUpperCase()}
+              {profile.full_name?.charAt(0)?.toUpperCase()}
             </Avatar>
-            <Typography variant="h5" sx={{ fontWeight: 700 }}>{profile.theaterName}</Typography>
-            <Typography>{profile.name}</Typography>
+            <Typography variant="h5" sx={{ fontWeight: 700 }}>{profile.full_name}</Typography>
+            <Typography>{profile.full_name}</Typography>
           </Stack>
 
           <Divider sx={{ my: 3 }} />
@@ -616,7 +614,7 @@ const OwnerProfile = () => {
 
             <Grid item xs={12} sm={6}>
               <Typography variant="body2" color="text.secondary">Owner Name</Typography>
-              <Typography sx={{ fontWeight: 600 }}>{profile.name}</Typography>
+              <Typography sx={{ fontWeight: 600 }}>{profile.full_name}</Typography>
             </Grid>
 
             <Grid item xs={12} sm={6}>
@@ -632,7 +630,7 @@ const OwnerProfile = () => {
                   onChange={(e) => handleInputChange('phone', e.target.value)}
                 />
               ) : (
-                <Typography sx={{ fontWeight: 600 }}>{profile.phone}</Typography>
+                <Typography sx={{ fontWeight: 600 }}>{profile.phone_number}</Typography>
               )}
             </Grid>
 
@@ -644,7 +642,7 @@ const OwnerProfile = () => {
                   onChange={(e) => handleInputChange('location', e.target.value)}
                 />
               ) : (
-                <Typography sx={{ fontWeight: 600 }}>{profile.location}</Typography>
+                <Typography sx={{ fontWeight: 600 }}>{profile.city}</Typography>
               )}
             </Grid>
           </Grid>
@@ -663,7 +661,7 @@ const OwnerProfile = () => {
                     Theater Name
                   </Typography>
                 </Stack>
-                <Typography sx={{ fontWeight: 600 }}>{profile.theaterName}</Typography>
+                <Typography sx={{ fontWeight: 600 }}>{profile.full_name}</Typography>
               </Stack>
             </Grid>
 
@@ -675,7 +673,7 @@ const OwnerProfile = () => {
                     Location
                   </Typography>
                 </Stack>
-                <Typography sx={{ fontWeight: 600 }}>{profile.location}</Typography>
+                <Typography sx={{ fontWeight: 600 }}>{profile.city}</Typography>
               </Stack>
             </Grid>
 
@@ -684,7 +682,7 @@ const OwnerProfile = () => {
                 <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
                   Full Address
                 </Typography>
-                <Typography sx={{ fontWeight: 600 }}>{profile.address}</Typography>
+                  <Typography sx={{ fontWeight: 600 }}>{profile.full_name}</Typography>
               </Stack>
             </Grid>
           </Grid>
