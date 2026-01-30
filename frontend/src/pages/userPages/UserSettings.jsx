@@ -40,17 +40,11 @@ const UserSettings = () => {
 	const { mode, toggleMode, setThemeMode } = useCustomTheme();
 	const [loading, setLoading] = useState(true);
 	const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-	const [preferences, setPreferences] = useState({
-		language: 'English',
-		notifications: true,
-		darkMode: mode === 'dark',
-		favoriteGenres: ['Action', 'Drama'],
-	});
    const navigate = useNavigate();
 
 const handleDeleteAccount = async () => {
   const confirmDelete = window.confirm(
-    "Are you sure you want to delete your account? This cannot be undone."
+    "Are your sure you want to logout?"
   );
 
   if (!confirmDelete) return;
@@ -58,11 +52,8 @@ const handleDeleteAccount = async () => {
   try {
     await deleteUserAccount();
 
-    // Clear auth data
     localStorage.removeItem("authToken");
 
-    // Optional: if you have logout() in context
-    // logout();
 
     alert("Account deleted successfully");
 
@@ -72,46 +63,12 @@ const handleDeleteAccount = async () => {
   }
 };
 
-	const fetchPreferences = async () => {
-		setLoading(true);
-		try {
-			const data = await getUserPreferences();
-			setPreferences(data);
-			if (data.darkMode !== undefined && data.darkMode !== (mode === 'dark')) {
-				setThemeMode(data.darkMode ? 'dark' : 'light');
-			}
-		} catch (error) {
-			console.error('Error fetching preferences:', error);
-		} finally {
-			setLoading(false);
-		}
-	};
+	
 
 	useEffect(() => {
-		fetchPreferences();
+		setLoading(false);
 	}, []);
 
-	const handlePreferenceChange = (key, value) => {
-		setPreferences({ ...preferences, [key]: value });
-	};
-
-	const handleSave = async (section) => {
-		try {
-			await updateUserPreferences(preferences);
-			setSnackbar({
-				open: true,
-				message: `${section} settings saved successfully!`,
-				severity: 'success',
-			});
-		} catch (error) {
-			console.error('Error updating preferences:', error);
-			setSnackbar({
-				open: true,
-				message: 'Failed to save settings',
-				severity: 'error',
-			});
-		}
-	};
 
 	const handleThemeChange = (isDark) => {
 		setThemeMode(isDark ? 'dark' : 'light');
@@ -142,89 +99,12 @@ const handleDeleteAccount = async () => {
 						Settings
 					</Typography>
 					<Typography color="text.secondary">
-						Customize your MovieHub experience
+						Customize your Cineverse experience
 					</Typography>
 				</Box>
 
 				<Grid container spacing={3}>
-					{/* Notification Settings */}
-					<Grid item xs={12} md={6}>
-						<Paper
-							elevation={0}
-							sx={{
-								p: 3,
-								borderRadius: 3,
-								border: '1px solid',
-								borderColor: 'divider',
-							}}
-						>
-							<Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 3 }}>
-								<NotificationsIcon color="primary" />
-								<Typography variant="h6" sx={{ fontWeight: 700 }}>
-									Notifications
-								</Typography>
-							</Stack>
-
-							<Stack spacing={2}>
-								<FormControlLabel
-									control={
-										<Switch
-											checked={preferences.notifications}
-											onChange={(e) => handlePreferenceChange('notifications', e.target.checked)}
-										/>
-									}
-									label="Enable Notifications"
-								/>
-								<Typography variant="body2" color="text.secondary" sx={{ pl: 4 }}>
-									Receive updates about your bookings, new movies, and special offers
-								</Typography>
-
-								<Divider sx={{ my: 1 }} />
-
-								<FormControlLabel
-									control={
-										<Switch
-											checked={preferences.emailNotifications !== false}
-											onChange={(e) => handlePreferenceChange('emailNotifications', e.target.checked)}
-											disabled={!preferences.notifications}
-										/>
-									}
-									label="Email Notifications"
-								/>
-
-								<FormControlLabel
-									control={
-										<Switch
-											checked={preferences.smsNotifications || false}
-											onChange={(e) => handlePreferenceChange('smsNotifications', e.target.checked)}
-											disabled={!preferences.notifications}
-										/>
-									}
-									label="SMS Notifications"
-								/>
-
-								<FormControlLabel
-									control={
-										<Switch
-											checked={preferences.pushNotifications !== false}
-											onChange={(e) => handlePreferenceChange('pushNotifications', e.target.checked)}
-											disabled={!preferences.notifications}
-										/>
-									}
-									label="Push Notifications"
-								/>
-
-								<Button
-									variant="contained"
-									startIcon={<SaveIcon />}
-									onClick={() => handleSave('Notification')}
-									sx={{ textTransform: 'none', alignSelf: 'flex-start', mt: 2 }}
-								>
-									Save Notification Settings
-								</Button>
-							</Stack>
-						</Paper>
-					</Grid>
+					
 
 					{/* Theme Settings */}
 					<Grid item xs={12} md={6}>
@@ -273,123 +153,13 @@ const handleDeleteAccount = async () => {
 								/>
 
 								<Alert severity="info">
-									Theme changes are applied immediately and saved to your preferences.
+									Theme changes are applied immediately.
 								</Alert>
 							</Stack>
 						</Paper>
 					</Grid>
 
-					{/* Language & Region */}
-					<Grid item xs={12} md={6}>
-						<Paper
-							elevation={0}
-							sx={{
-								p: 3,
-								borderRadius: 3,
-								border: '1px solid',
-								borderColor: 'divider',
-							}}
-						>
-							<Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 3 }}>
-								<LanguageIcon color="primary" />
-								<Typography variant="h6" sx={{ fontWeight: 700 }}>
-									Language & Region
-								</Typography>
-							</Stack>
-
-							<Stack spacing={3}>
-								<FormControl fullWidth size="small">
-									<InputLabel>Language</InputLabel>
-									<Select
-										value={preferences.language}
-										label="Language"
-										onChange={(e) => handlePreferenceChange('language', e.target.value)}
-									>
-										<MenuItem value="English">English</MenuItem>
-										<MenuItem value="Hindi">Hindi</MenuItem>
-										<MenuItem value="Tamil">Tamil</MenuItem>
-										<MenuItem value="Telugu">Telugu</MenuItem>
-										<MenuItem value="Kannada">Kannada</MenuItem>
-										<MenuItem value="Malayalam">Malayalam</MenuItem>
-									</Select>
-								</FormControl>
-
-								<Button
-									variant="contained"
-									startIcon={<SaveIcon />}
-									onClick={() => handleSave('Language')}
-									sx={{ textTransform: 'none', alignSelf: 'flex-start' }}
-								>
-									Save Language Settings
-								</Button>
-							</Stack>
-						</Paper>
-					</Grid>
-
-					{/* Preferences */}
-					<Grid item xs={12} md={6}>
-						<Paper
-							elevation={0}
-							sx={{
-								p: 3,
-								borderRadius: 3,
-								border: '1px solid',
-								borderColor: 'divider',
-							}}
-						>
-							<Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 3 }}>
-								<SecurityIcon color="primary" />
-								<Typography variant="h6" sx={{ fontWeight: 700 }}>
-									Preferences
-								</Typography>
-							</Stack>
-
-							<Stack spacing={3}>
-								<Box>
-									<Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-										Favorite Genres
-									</Typography>
-									<Stack direction="row" spacing={1} flexWrap="wrap">
-										{preferences.favoriteGenres?.map((genre) => (
-											<Chip key={genre} label={genre} size="small" />
-										))}
-									</Stack>
-									<Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-										Used to personalize movie recommendations
-									</Typography>
-								</Box>
-
-								<FormControlLabel
-									control={
-										<Switch
-											checked={preferences.autoPlayTrailers || false}
-											onChange={(e) => handlePreferenceChange('autoPlayTrailers', e.target.checked)}
-										/>
-									}
-									label="Auto-play Trailers"
-								/>
-
-								<FormControlLabel
-									control={
-										<Switch
-											checked={preferences.showAdultContent || false}
-											onChange={(e) => handlePreferenceChange('showAdultContent', e.target.checked)}
-										/>
-									}
-									label="Show Adult Content"
-								/>
-
-								<Button
-									variant="contained"
-									startIcon={<SaveIcon />}
-									onClick={() => handleSave('Preferences')}
-									sx={{ textTransform: 'none', alignSelf: 'flex-start' }}
-								>
-									Save Preferences
-								</Button>
-							</Stack>
-						</Paper>
-					</Grid>
+					
 
 					{/* Account Actions */}
 					<Grid item xs={12}>

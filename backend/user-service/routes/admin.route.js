@@ -5,7 +5,6 @@ const { addTheaterOwner , getAllActiveUsers } = require("../controllers/admin.co
 
 const router = express.Router();
 
-// ADMIN → ADD THEATER OWNER
 router.post(
   "/add-theater-owner",
   authenticate,
