@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
 	Box,
 	Container,
@@ -41,11 +41,9 @@ import {
 	Refresh as RefreshIcon,
 	FilterList as FilterListIcon,
 } from '@mui/icons-material';
-import { getUsers, updateUserStatus, deleteUser } from '../../services/admin';
-
 const AdminUsers = () => {
 	const [users, setUsers] = useState([]);
-	const [loading, setLoading] = useState(true);
+	const [loading, setLoading] = useState(false);
 	const [page, setPage] = useState(0);
 	const [rowsPerPage, setRowsPerPage] = useState(10);
 	const [total, setTotal] = useState(0);
@@ -55,35 +53,6 @@ const AdminUsers = () => {
 	const [selectedUser, setSelectedUser] = useState(null);
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 	const [userToDelete, setUserToDelete] = useState(null);
-
-	const fetchUsers = async () => {
-		setLoading(true);
-		try {
-			const response = await getUsers(page + 1, rowsPerPage, search, statusFilter);
-			setUsers(response.users);
-			setTotal(response.total);
-		} catch (error) {
-			console.error('Error fetching users:', error);
-		} finally {
-			setLoading(false);
-		}
-	};
-
-	useEffect(() => {
-		fetchUsers();
-	}, [page, rowsPerPage, statusFilter]);
-
-	useEffect(() => {
-		const debounceTimer = setTimeout(() => {
-			if (page === 0) {
-				fetchUsers();
-			} else {
-				setPage(0);
-			}
-		}, 500);
-
-		return () => clearTimeout(debounceTimer);
-	}, [search]);
 
 	const handleChangePage = (event, newPage) => {
 		setPage(newPage);
@@ -104,14 +73,8 @@ const AdminUsers = () => {
 		setSelectedUser(null);
 	};
 
-	const handleStatusChange = async (userId, newStatus) => {
-		try {
-			await updateUserStatus(userId, newStatus);
-			fetchUsers();
-			handleMenuClose();
-		} catch (error) {
-			console.error('Error updating user status:', error);
-		}
+	const handleStatusChange = (_userId, _newStatus) => {
+		handleMenuClose();
 	};
 
 	const handleDeleteClick = (user) => {
@@ -120,17 +83,9 @@ const AdminUsers = () => {
 		handleMenuClose();
 	};
 
-	const handleDeleteConfirm = async () => {
-		if (userToDelete) {
-			try {
-				await deleteUser(userToDelete.id);
-				fetchUsers();
-				setDeleteDialogOpen(false);
-				setUserToDelete(null);
-			} catch (error) {
-				console.error('Error deleting user:', error);
-			}
-		}
+	const handleDeleteConfirm = () => {
+		setDeleteDialogOpen(false);
+		setUserToDelete(null);
 	};
 
 	const getStatusColor = (status) => {
@@ -160,7 +115,7 @@ const AdminUsers = () => {
 					<Button
 						variant="outlined"
 						startIcon={<RefreshIcon />}
-						onClick={fetchUsers}
+						disabled
 						sx={{ textTransform: 'none' }}
 					>
 						Refresh
@@ -255,7 +210,7 @@ const AdminUsers = () => {
 											<TableCell><Skeleton height={40} width={40} /></TableCell>
 										</TableRow>
 									))
-								) : users.length > 0 ? (
+								) : !loading && users.length > 0 ? (
 									users.map((user) => (
 										<TableRow key={user.id} hover>
 											<TableCell>

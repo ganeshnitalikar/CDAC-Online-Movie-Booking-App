@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
 	Box,
 	Container,
@@ -33,45 +33,14 @@ import {
 	Error as ErrorIcon,
 	CheckCircle as CheckCircleIcon,
 } from '@mui/icons-material';
-import { getLogs } from '../../services/admin';
-
 const AdminLogs = () => {
 	const [logs, setLogs] = useState([]);
-	const [loading, setLoading] = useState(true);
+	const [loading, setLoading] = useState(false);
 	const [page, setPage] = useState(0);
 	const [rowsPerPage, setRowsPerPage] = useState(50);
 	const [total, setTotal] = useState(0);
 	const [search, setSearch] = useState('');
 	const [levelFilter, setLevelFilter] = useState('all');
-
-	const fetchLogs = async () => {
-		setLoading(true);
-		try {
-			const response = await getLogs(page + 1, rowsPerPage, levelFilter, search);
-			setLogs(response.logs);
-			setTotal(response.total);
-		} catch (error) {
-			console.error('Error fetching logs:', error);
-		} finally {
-			setLoading(false);
-		}
-	};
-
-	useEffect(() => {
-		fetchLogs();
-	}, [page, rowsPerPage, levelFilter]);
-
-	useEffect(() => {
-		const debounceTimer = setTimeout(() => {
-			if (page === 0) {
-				fetchLogs();
-			} else {
-				setPage(0);
-			}
-		}, 500);
-
-		return () => clearTimeout(debounceTimer);
-	}, [search]);
 
 	const handleChangePage = (event, newPage) => {
 		setPage(newPage);
@@ -136,7 +105,7 @@ const AdminLogs = () => {
 					<Button
 						variant="outlined"
 						startIcon={<RefreshIcon />}
-						onClick={fetchLogs}
+						disabled
 						sx={{ textTransform: 'none' }}
 					>
 						Refresh
@@ -322,7 +291,7 @@ const AdminLogs = () => {
 											<TableCell><Skeleton height={40} width={150} /></TableCell>
 										</TableRow>
 									))
-								) : logs.length > 0 ? (
+								) : !loading && logs.length > 0 ? (
 									logs.map((log) => (
 										<TableRow key={log.id} hover>
 											<TableCell>

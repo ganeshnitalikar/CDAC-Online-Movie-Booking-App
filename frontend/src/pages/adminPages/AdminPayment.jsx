@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
 	Box,
 	Container,
@@ -36,52 +36,15 @@ import {
 	AccountBalance as AccountBalanceIcon,
 	Payment as PaymentIcon,
 } from '@mui/icons-material';
-import { getPayments, getPaymentStats } from '../../services/admin';
-
 const AdminPayment = () => {
 	const [payments, setPayments] = useState([]);
 	const [stats, setStats] = useState(null);
-	const [loading, setLoading] = useState(true);
+	const [loading, setLoading] = useState(false);
 	const [page, setPage] = useState(0);
 	const [rowsPerPage, setRowsPerPage] = useState(10);
 	const [total, setTotal] = useState(0);
 	const [search, setSearch] = useState('');
 	const [statusFilter, setStatusFilter] = useState('all');
-	const [totalRevenue, setTotalRevenue] = useState(0);
-
-	const fetchData = async () => {
-		setLoading(true);
-		try {
-			const [paymentsData, statsData] = await Promise.all([
-				getPayments(page + 1, rowsPerPage, search, statusFilter),
-				getPaymentStats('month'),
-			]);
-			setPayments(paymentsData.payments);
-			setTotal(paymentsData.total);
-			setTotalRevenue(paymentsData.totalRevenue);
-			setStats(statsData);
-		} catch (error) {
-			console.error('Error fetching payment data:', error);
-		} finally {
-			setLoading(false);
-		}
-	};
-
-	useEffect(() => {
-		fetchData();
-	}, [page, rowsPerPage, statusFilter]);
-
-	useEffect(() => {
-		const debounceTimer = setTimeout(() => {
-			if (page === 0) {
-				fetchData();
-			} else {
-				setPage(0);
-			}
-		}, 500);
-
-		return () => clearTimeout(debounceTimer);
-	}, [search]);
 
 	const handleChangePage = (event, newPage) => {
 		setPage(newPage);
@@ -134,7 +97,7 @@ const AdminPayment = () => {
 					<Button
 						variant="outlined"
 						startIcon={<RefreshIcon />}
-						onClick={fetchData}
+						disabled
 						sx={{ textTransform: 'none' }}
 					>
 						Refresh
@@ -402,7 +365,7 @@ const AdminPayment = () => {
 											<TableCell><Skeleton height={40} width={100} /></TableCell>
 										</TableRow>
 									))
-								) : payments.length > 0 ? (
+								) : !loading && payments.length > 0 ? (
 									payments.map((payment) => (
 										<TableRow key={payment.id} hover>
 											<TableCell>

@@ -9,9 +9,9 @@ import { getMovieById } from "./movie.public.service";
 /**
  * Initiate a booking
  * POST /user/bookings/initiate
- * @param {number} showId - Show ID
- * @param {Array<number>} seatIds - Array of seat IDs
- * @returns {Promise<Object>} Booking response with bookingId and lockExpiry
+ *  showId - Show ID
+ *  seatIds - Array of seat IDs
+ *  return Booking response with bookingId and lockExpiry
  */
 export const initiateBooking = async (showId, seatIds) => {
   if (!showId) {
@@ -58,8 +58,8 @@ export const initiateBooking = async (showId, seatIds) => {
 /**
  * Get ticket details
  * GET /user/bookings/{bookingId}/ticket
- * @param {string|number} bookingId - Booking ID
- * @returns {Promise<Object>} Ticket details
+ *  bookingId - Booking ID
+ *  return Ticket details
  */
 export const getTicket = async (bookingId) => {
   
