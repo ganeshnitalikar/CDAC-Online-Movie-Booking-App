@@ -107,6 +107,7 @@ public class BookingServiceImpl implements BookingService {
         return response;
     }
 
+
     @Override
     @Transactional(readOnly = true)
     public TicketResponse getTicket(Long bookingId, String userId) {
