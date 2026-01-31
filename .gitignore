@@ -24,3 +24,25 @@ dist-ssr
 *.sw?
 /.metadata/
 .env
+.properties
+
+
+# .NET build folders
+bin/
+obj/
+
+# App settings (secrets)
+appsettings.json
+appsettings.Development.json
+appsettings.Production.json
+
+# User secrets
+secrets.json
+
+# Logs
+*.log
+
+# VS / Rider
+.vs/
+*.user
+*.suo

@@ -23,7 +23,9 @@ const MovieDetailsPage = () => {
 		setError(null)
 		getMovieById(id)
 			.then((m) => {
+				console.log(m)
 				if (mounted) setMovie(m)
+
 			})
 			.catch((err) => {
 				if (mounted) setError(err.message || 'Failed to load movie details')
@@ -87,7 +89,7 @@ const MovieDetailsPage = () => {
 							)}
 							<Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} sx={{ mt: 3 }}>
 								<MetaItem label="Rating" value={loading ? '-' : `⭐ ${movie.rating}`} />
-								<MetaItem label="Duration" value={loading ? '-' : `${movie.durationMins} mins`} />
+								<MetaItem label="Duration" value={loading ? '-' : `${movie.durationMinutes} mins`} />
 								<MetaItem label="Language" value={loading ? '-' : movie.language} />
 								<MetaItem label="Certificate" value={loading ? '-' : movie.certificate} />
 							</Stack>

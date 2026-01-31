@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTheme } from '@mui/material/styles';
 import {
 	Box,
 	Container,
@@ -10,148 +11,143 @@ import {
 	Alert,
 	IconButton,
 	CircularProgress,
-	Divider,
 	Grid,
 	Chip,
+	Table,
+	TableBody,
+	TableCell,
+	TableRow,
+	TableContainer,
 } from '@mui/material';
 import {
 	ArrowBack as ArrowBackIcon,
 	Movie as MovieIcon,
-	LocationOn as LocationIcon,
+	LocationOn as LocationOnIcon,
 	AccessTime as TimeIcon,
 	EventSeat as SeatIcon,
 	CheckCircle as CheckCircleIcon,
 	Download as DownloadIcon,
+	ConfirmationNumber as TicketIcon,
 } from '@mui/icons-material';
 import { getTicket } from '../../services/bookingService';
+import { getMovieById } from '../../services/movie.public.service';
+
+const formatDateTime = (dateString) => {
+	if (!dateString) return '—';
+	try {
+		const date = new Date(dateString);
+		return date.toLocaleString('en-IN', {
+			weekday: 'long',
+			day: '2-digit',
+			month: 'long',
+			year: 'numeric',
+			hour: '2-digit',
+			minute: '2-digit',
+			hour12: true,
+		});
+	} catch {
+		return String(dateString);
+	}
+};
 
 const TicketPage = () => {
+	const theme = useTheme();
 	const { bookingId } = useParams();
 	const navigate = useNavigate();
 	const [ticket, setTicket] = useState(null);
+	const [movieName, setMovieName] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
-	const [polling, setPolling] = useState(true);
+
 	const fetchTicket = async () => {
 		try {
 			const ticketData = await getTicket(bookingId);
 			setTicket(ticketData);
-			// if (mounted) {
-			// 	setTicket(ticketData);
-			// 	// Stop polling if booking is confirmed
-			// 	if (ticketData.status === 'CONFIRMED' || ticketData.bookingStatus === 'CONFIRMED') {
-			// 		setPolling(false);
-			// 		setLoading(false);
-			// 	}
-			// }
+			setError(null);
+			// Fetch movie name by movieId so we show title, not ID
+			if (ticketData?.movieId) {
+				try {
+					const movie = await getMovieById(ticketData.movieId);
+					setMovieName(movie?.title ?? movie?.name ?? null);
+				} catch (movieErr) {
+					console.error('Error fetching movie details:', movieErr);
+					setMovieName(null);
+				}
+			} else {
+				setMovieName(null);
+			}
 		} catch (err) {
 			console.error('Error fetching ticket:', err);
-			// if (mounted) {
-			// 	setError(err.message || 'Failed to load ticket');
-			// 	setLoading(false);
-			// 	setPolling(false);
-			// }
+			setError(err.message || 'Failed to load ticket');
+			setTicket(null);
+			setMovieName(null);
+		} finally {
+			setLoading(false);
 		}
 	};
 
 	useEffect(() => {
-		// let pollInterval;
-		// let mounted = true;
-
-		
-
-		fetchTicket();
-		setLoading(false);
-		// Poll every 3 seconds if booking is not confirmed
-		// if (polling) {
-		// 	pollInterval = setInterval(() => {
-		// 		if (mounted && polling) {
-		// 			fetchTicket();
-		// 		}
-		// 	}, 3000);
-		// }
-
-		// return () => {
-		// 	mounted = false;
-		// 	if (pollInterval) {
-		// 		clearInterval(pollInterval);
-		// 	}
-		// };
-	}, [bookingId, polling]);
-
-	const formatDateTime = (dateString) => {
-		if (!dateString) return '';
-		try {
-			const date = new Date(dateString);
-			return date.toLocaleString('en-US', {
-				weekday: 'long',
-				month: 'long',
-				day: 'numeric',
-				year: 'numeric',
-				hour: '2-digit',
-				minute: '2-digit',
-				hour12: true,
-			});
-		} catch {
-			return dateString;
-		}
-	};
+		if (bookingId) fetchTicket();
+	}, [bookingId]);
 
 	const handleDownload = () => {
-		// TODO: Implement ticket download functionality
 		window.print();
 	};
 
-	const isConfirmed = ticket?.status === 'CONFIRMED' || ticket?.bookingStatus === 'CONFIRMED';
+	const isConfirmed =
+		ticket?.status === 'CONFIRMED' || ticket?.bookingStatus === 'CONFIRMED';
 
-	const InfoRow = ({ icon: Icon, label, value }) => (
-		<Stack direction="row" spacing={2} alignItems="flex-start" sx={{ mb: 2 }}>
-			<Icon color="action" fontSize="small" />
-			<Box>
-				<Typography variant="caption" color="text.secondary">
-					{label}
-				</Typography>
-				<Typography variant="body1" sx={{ fontWeight: 500 }}>
-					{value}
-				</Typography>
-			</Box>
-		</Stack>
-	);
+	// Movie name: from fetched movie details, or ticket payload, never raw movieId
+	const movieTitle =
+		movieName ||
+		ticket?.movieTitle ||
+		ticket?.movie?.title ||
+		'—';
+	const theatreName = ticket?.theatreName || '—';
+	const screenName = ticket?.screenName || '—';
+	const showTime = formatDateTime(ticket?.showStartTime || ticket?.show?.showTime);
+	const seatsList = Array.isArray(ticket?.seats) ? ticket.seats : [];
+	const seatsDisplay = seatsList.length > 0 ? seatsList.join(', ') : '—';
+	const totalAmount = ticket?.totalAmount ?? ticket?.total ?? null;
+	const bookingIdDisplay = ticket?.bookingId ?? bookingId;
 
-	return (
-		<Box sx={{ py: 4, minHeight: '80vh' }}>
-			<Container maxWidth="md">
-				{/* Header */}
-				<Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 3 }}>
-					<IconButton onClick={() => navigate('/')}>
-						<ArrowBackIcon />
-					</IconButton>
-					<Box sx={{ flex: 1 }}>
-						<Typography variant="h5" sx={{ fontWeight: 800 }}>
-							Your Ticket
-						</Typography>
-						<Typography color="text.secondary">
-							Booking #{bookingId}
-						</Typography>
-					</Box>
-					{isConfirmed && (
-						<Chip
-							icon={<CheckCircleIcon />}
-							label="Confirmed"
-							color="success"
-							variant="outlined"
-						/>
-					)}
-				</Stack>
+	// Extra fields on ticket (for "full data") – exclude already-rendered keys
+	const displayKeys = [
+		'bookingId',
+		'movieId',
+		'movieTitle',
+		'theatreName',
+		'screenName',
+		'seats',
+		'showStartTime',
+		'totalAmount',
+		'total',
+		'status',
+		'bookingStatus',
+		'movie',
+		'show',
+	];
+	const extraTicketKeys = ticket
+		? Object.keys(ticket).filter((k) => !displayKeys.includes(k))
+		: [];
 
-				{/* Error Alert */}
-				{error && (
-					<Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
-						{error}
-					</Alert>
-				)}
-
-				{loading  ? (
+	if (loading) {
+		return (
+			<Box sx={{ py: 4, minHeight: '80vh' }}>
+				<Container maxWidth="md">
+					<Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 3 }}>
+						<IconButton onClick={() => navigate('/')} size="large">
+							<ArrowBackIcon />
+						</IconButton>
+						<Box sx={{ flex: 1 }}>
+							<Typography variant="h5" sx={{ fontWeight: 800 }}>
+								Your Ticket
+							</Typography>
+							<Typography variant="body2" color="text.secondary">
+								Booking #{bookingId}
+							</Typography>
+						</Box>
+					</Stack>
 					<Paper
 						elevation={0}
 						sx={{
@@ -162,108 +158,55 @@ const TicketPage = () => {
 							borderColor: 'divider',
 						}}
 					>
-						<CircularProgress />
+						<CircularProgress sx={{ color: 'primary.main' }} />
 						<Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-							{loading
-								? 'Loading ticket details...'
-								: 'Waiting for payment confirmation...'}
+							Loading ticket...
 						</Typography>
-						{!isConfirmed && (
-							<Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-								This may take a few moments
-							</Typography>
-						)}
 					</Paper>
-				) : ticket ? (
-					<Paper
-						elevation={0}
-						sx={{
-							p: 4,
-							borderRadius: 3,
-							border: '2px solid',
-							borderColor: 'primary.main',
-							background: 'linear-gradient(to bottom,rgb(237, 76, 76) ,rgb(231, 0, 0))',
-						}}
+				</Container>
+			</Box>
+		);
+	}
+
+	return (
+		<Box sx={{ py: 4, minHeight: '80vh' }} className="ticket-page">
+			<Container maxWidth="md">
+				{/* Page header */}
+				<Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 3 }} className="no-print">
+					<IconButton onClick={() => navigate('/')} size="large">
+						<ArrowBackIcon />
+					</IconButton>
+					<Box sx={{ flex: 1 }}>
+						<Typography variant="h5" sx={{ fontWeight: 800 }}>
+							Your Ticket
+						</Typography>
+						<Typography variant="body2" color="text.secondary">
+							Booking #{bookingId}
+						</Typography>
+					</Box>
+					{isConfirmed && (
+						<Chip
+							icon={<CheckCircleIcon />}
+							label="Confirmed"
+							color="success"
+							variant="filled"
+							sx={{ fontWeight: 600 }}
+						/>
+					)}
+				</Stack>
+
+				{error && (
+					<Alert
+						severity="error"
+						sx={{ mb: 3 }}
+						onClose={() => setError(null)}
+						className="no-print"
 					>
-						{/* Ticket Header */}
-						<Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
-							<Box>
-								<Typography variant="h4" sx={{ fontWeight: 800, color: 'primary.main' }}>
-									{ticket.movieTitle || ticket.movie?.title || 'Movie Ticket'}
-								</Typography>
-								<Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-									Booking ID: {bookingId}
-								</Typography>
-							</Box>
-							<Chip
-								icon={<CheckCircleIcon />}
-								label="Confirmed"
-								color="success"
-								sx={{ fontWeight: 600 }}
-							/>
-						</Stack>
+						{error}
+					</Alert>
+				)}
 
-						<Divider sx={{ my: 3 }} />
-
-						{/* Ticket Details */}
-						<Grid container spacing={3}>
-							<Grid item xs={12} md={6}>
-								<InfoRow
-									icon={LocationIcon}
-									label="Theatre"
-									value={
-										ticket.theatreName
-											? `${ticket.theatreName} - ${ticket.screenName || ''}`
-											: 'N/A'
-									}
-								/>
-								<InfoRow
-									icon={TimeIcon}
-									label="Show Time"
-									value={formatDateTime(ticket.showStartTime || ticket.show?.showTime)}
-								/>
-							</Grid>
-							<Grid item xs={12} md={6}>
-								<InfoRow
-									icon={SeatIcon}
-									label="Seats"
-									value={
-										ticket.seats.join(" , ")
-											 || 'N/A'
-									}
-								/>
-								{ticket.totalAmount && (
-									<InfoRow
-										icon={MovieIcon}
-										label="Total Amount"
-										value={`₹${ticket.totalAmount}`}
-									/>
-								)}
-							</Grid>
-						</Grid>
-
-						<Divider sx={{ my: 3 }} />
-
-						{/* Actions */}
-						<Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 3 }}>
-							<Button
-								variant="outlined"
-								startIcon={<DownloadIcon />}
-								onClick={handleDownload}
-								sx={{ textTransform: 'none' }}
-							>
-								Download Ticket
-							</Button>
-							<Button
-								variant="contained"
-								onClick={() => navigate('/')}
-								sx={{ textTransform: 'none' }}
-							>
-								Back to Home
-							</Button>
-						</Stack>
-					</Paper>
-				) : (
+				{!ticket ? (
 					<Paper
 						elevation={0}
 						sx={{
@@ -275,14 +218,316 @@ const TicketPage = () => {
 						}}
 					>
 						<Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
-							Ticket Not Found
+							Ticket not found
 						</Typography>
 						<Typography variant="body2" color="text.secondary">
 							Unable to load ticket details.
 						</Typography>
 					</Paper>
+				) : (
+					<Paper
+						elevation={0}
+						sx={{
+							overflow: 'hidden',
+							borderRadius: 3,
+							border: '1px solid',
+							borderColor: 'divider',
+							backgroundColor: 'background.paper',
+							boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+						}}
+						className="ticket-card"
+					>
+						{/* Ticket header strip – theme primary */}
+						<Box
+							sx={{
+								px: 3,
+								py: 2.5,
+								background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+								color: theme.palette.primary.contrastText,
+							}}
+						>
+							<Stack direction="row" alignItems="center" spacing={2}>
+								<Box
+									sx={{
+										width: 48,
+										height: 48,
+										borderRadius: 2,
+										bgcolor: 'rgba(255,255,255,0.2)',
+										display: 'flex',
+										alignItems: 'center',
+										justifyContent: 'center',
+									}}
+								>
+									<TicketIcon sx={{ fontSize: 28 }} />
+								</Box>
+								<Box sx={{ flex: 1 }}>
+									<Typography variant="h5" sx={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
+										{movieTitle}
+									</Typography>
+									<Typography variant="body2" sx={{ opacity: 0.95, mt: 0.25 }}>
+										Booking ID: {bookingIdDisplay}
+									</Typography>
+								</Box>
+								{isConfirmed && (
+									<Chip
+										icon={<CheckCircleIcon />}
+										label="Confirmed"
+										size="medium"
+										sx={{
+											bgcolor: 'rgba(255,255,255,0.25)',
+											color: 'inherit',
+											fontWeight: 600,
+											'& .MuiChip-icon': { color: 'inherit' },
+										}}
+									/>
+								)}
+							</Stack>
+						</Box>
+
+						{/* Main ticket body */}
+						<Box sx={{ px: 3, py: 3 }}>
+							<Grid container spacing={3}>
+								<Grid item xs={12} md={6}>
+									<Stack spacing={2.5}>
+										<Stack direction="row" spacing={2} alignItems="flex-start">
+											<Box
+												sx={{
+													width: 40,
+													height: 40,
+													borderRadius: 2,
+													bgcolor: 'primary.light',
+													color: 'primary.main',
+													display: 'flex',
+													alignItems: 'center',
+													justifyContent: 'center',
+												}}
+											>
+												<LocationOnIcon sx={{ fontSize: 20 }} />
+											</Box>
+											<Box>
+												<Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+													Theatre
+												</Typography>
+												<Typography variant="body1" sx={{ fontWeight: 600 }}>
+													{theatreName}
+												</Typography>
+												<Typography variant="body2" color="text.secondary">
+													Screen: {screenName}
+												</Typography>
+											</Box>
+										</Stack>
+										<Stack direction="row" spacing={2} alignItems="flex-start">
+											<Box
+												sx={{
+													width: 40,
+													height: 40,
+													borderRadius: 2,
+													bgcolor: 'secondary.light',
+													color: 'secondary.main',
+													display: 'flex',
+													alignItems: 'center',
+													justifyContent: 'center',
+												}}
+											>
+												<TimeIcon sx={{ fontSize: 20 }} />
+											</Box>
+											<Box>
+												<Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+													Show time
+												</Typography>
+												<Typography variant="body1" sx={{ fontWeight: 600 }}>
+													{showTime}
+												</Typography>
+											</Box>
+										</Stack>
+									</Stack>
+								</Grid>
+								<Grid item xs={12} md={6}>
+									<Stack spacing={2.5}>
+										<Stack direction="row" spacing={2} alignItems="flex-start">
+											<Box
+												sx={{
+													width: 40,
+													height: 40,
+													borderRadius: 2,
+													bgcolor: 'success.light',
+													color: 'success.main',
+													display: 'flex',
+													alignItems: 'center',
+													justifyContent: 'center',
+												}}
+											>
+												<SeatIcon sx={{ fontSize: 20 }} />
+											</Box>
+											<Box>
+												<Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+													Seats
+												</Typography>
+												<Typography variant="body1" sx={{ fontWeight: 600 }}>
+													{seatsDisplay}
+												</Typography>
+												{seatsList.length > 0 && (
+													<Stack direction="row" spacing={0.5} flexWrap="wrap" sx={{ mt: 0.5 }}>
+														{seatsList.map((s) => (
+															<Chip key={s} label={s} size="small" variant="outlined" sx={{ fontWeight: 600 }} />
+														))}
+													</Stack>
+												)}
+											</Box>
+										</Stack>
+										{totalAmount != null && (
+											<Stack direction="row" spacing={2} alignItems="flex-start">
+												<Box
+													sx={{
+														width: 40,
+														height: 40,
+														borderRadius: 2,
+														bgcolor: 'primary.light',
+														color: 'primary.main',
+														display: 'flex',
+														alignItems: 'center',
+														justifyContent: 'center',
+													}}
+												>
+													<MovieIcon sx={{ fontSize: 20 }} />
+												</Box>
+												<Box>
+													<Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+														Total amount
+													</Typography>
+													<Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.main' }}>
+														₹{totalAmount}
+													</Typography>
+												</Box>
+											</Stack>
+										)}
+									</Stack>
+								</Grid>
+							</Grid>
+
+							{/* Full ticket data table – all keys */}
+							{extraTicketKeys.length > 0 && (
+								<Box sx={{ mt: 4 }}>
+									<Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1.5, fontWeight: 600 }}>
+										All ticket data
+									</Typography>
+									<TableContainer
+										component={Paper}
+										variant="outlined"
+										elevation={0}
+										sx={{
+											borderRadius: 2,
+											border: '1px solid',
+											borderColor: 'divider',
+											overflow: 'hidden',
+										}}
+									>
+										<Table size="small">
+											<TableBody>
+												{[
+													{ key: 'Booking ID', value: bookingIdDisplay },
+													{ key: 'Movie', value: movieTitle },
+													{ key: 'Theatre', value: theatreName },
+													{ key: 'Screen', value: screenName },
+													{ key: 'Show time', value: showTime },
+													{ key: 'Seats', value: seatsDisplay },
+													...(totalAmount != null ? [{ key: 'Total amount', value: `₹${totalAmount}` }] : []),
+													...(ticket.status ? [{ key: 'Status', value: ticket.status }] : []),
+													...(ticket.bookingStatus ? [{ key: 'Booking status', value: ticket.bookingStatus }] : []),
+													...extraTicketKeys.map((k) => ({
+														key: k,
+														value: typeof ticket[k] === 'object' ? JSON.stringify(ticket[k]) : String(ticket[k] ?? '—'),
+													})),
+												].map(({ key, value }) => (
+													<TableRow key={key}>
+														<TableCell sx={{ fontWeight: 600, width: '40%' }}>{key}</TableCell>
+														<TableCell>{value}</TableCell>
+													</TableRow>
+												))}
+											</TableBody>
+										</Table>
+									</TableContainer>
+								</Box>
+							)}
+
+							{/* If no extra keys, still show a compact "all data" list */}
+							{extraTicketKeys.length === 0 && (
+								<Box sx={{ mt: 4 }}>
+									<Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1.5, fontWeight: 600 }}>
+										Ticket summary
+									</Typography>
+									<TableContainer
+										component={Paper}
+										variant="outlined"
+										elevation={0}
+										sx={{
+											borderRadius: 2,
+											border: '1px solid',
+											borderColor: 'divider',
+											overflow: 'hidden',
+										}}
+									>
+										<Table size="small">
+											<TableBody>
+												<TableRow><TableCell sx={{ fontWeight: 600 }}>Booking ID</TableCell><TableCell>{bookingIdDisplay}</TableCell></TableRow>
+												<TableRow><TableCell sx={{ fontWeight: 600 }}>Movie</TableCell><TableCell>{movieTitle}</TableCell></TableRow>
+												<TableRow><TableCell sx={{ fontWeight: 600 }}>Theatre</TableCell><TableCell>{theatreName}</TableCell></TableRow>
+												<TableRow><TableCell sx={{ fontWeight: 600 }}>Screen</TableCell><TableCell>{screenName}</TableCell></TableRow>
+												<TableRow><TableCell sx={{ fontWeight: 600 }}>Show time</TableCell><TableCell>{showTime}</TableCell></TableRow>
+												<TableRow><TableCell sx={{ fontWeight: 600 }}>Seats</TableCell><TableCell>{seatsDisplay}</TableCell></TableRow>
+												{totalAmount != null && (
+													<TableRow><TableCell sx={{ fontWeight: 600 }}>Total amount</TableCell><TableCell>₹{totalAmount}</TableCell></TableRow>
+												)}
+												{ticket.status && <TableRow><TableCell sx={{ fontWeight: 600 }}>Status</TableCell><TableCell>{ticket.status}</TableCell></TableRow>}
+												{ticket.bookingStatus && <TableRow><TableCell sx={{ fontWeight: 600 }}>Booking status</TableCell><TableCell>{ticket.bookingStatus}</TableCell></TableRow>}
+											</TableBody>
+										</Table>
+									</TableContainer>
+								</Box>
+							)}
+						</Box>
+
+						{/* Actions */}
+						<Box
+							sx={{
+								px: 3,
+								py: 2,
+								borderTop: '1px solid',
+								borderColor: 'divider',
+								bgcolor: 'background.default',
+							}}
+							className="no-print"
+						>
+							<Stack direction="row" spacing={2} justifyContent="center" flexWrap="wrap">
+								<Button
+									variant="outlined"
+									startIcon={<DownloadIcon />}
+									onClick={handleDownload}
+									sx={{ textTransform: 'none', fontWeight: 600 }}
+								>
+									Download / Print
+								</Button>
+								<Button
+									variant="contained"
+									onClick={() => navigate('/')}
+									sx={{ textTransform: 'none', fontWeight: 600 }}
+								>
+									Back to Home
+								</Button>
+							</Stack>
+						</Box>
+					</Paper>
 				)}
 			</Container>
+
+			{/* Print-only: hide nav, show ticket only */}
+			<style>{`
+				@media print {
+					.ticket-page .no-print { display: none !important; }
+					.ticket-page .ticket-card { box-shadow: none !important; }
+					.ticket-page { padding: 0 !important; }
+				}
+			`}</style>
 		</Box>
 	);
 };
