@@ -528,8 +528,4 @@ const TicketPage = () => {
 					.ticket-page { padding: 0 !important; }
 				}
 			`}</style>
-		</Box>
-	);
-};
 
-export default TicketPage;
